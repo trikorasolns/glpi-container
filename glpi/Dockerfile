@@ -26,7 +26,7 @@ RUN apt update \
 && apt install -y zlib1g-dev libpng-dev libicu-dev libzip-dev libbz2-dev \
 && rm -rf /var/lib/apt/lists/* \
 && docker-php-ext-configure intl \
-&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 \
+&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 exif \
 && docker-php-ext-enable mysqli
 #RUN php -m
 
