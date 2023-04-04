@@ -23,10 +23,10 @@ RUN mkdir ${GLPI_CONFIG_DIR}
 #RUN docker-php-ext-install mysqli pdo pdo_mysql fileinfo gd json mbstring session zlib simplexml xml intl ldap openssl zlib && docker-php-ext-enable pdo_mysql
 # fileinfo  json mbstring session zlib simplexml xml intl ldap openssl zlib 
 RUN apt update \
-&& apt install -y zlib1g-dev libpng-dev libicu-dev libzip-dev \
+&& apt install -y zlib1g-dev libpng-dev libicu-dev libzip-dev libbz2-dev \
 && rm -rf /var/lib/apt/lists/* \
 && docker-php-ext-configure intl \
-&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip \
+&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 \
 && docker-php-ext-enable mysqli
 #RUN php -m
 
