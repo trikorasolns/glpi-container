@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glpi-mariadb-config
+  namespace: glpi
+  labels:
+    app.kubernetes.io/name: mariadb
+    app.kubernetes.io/instance: mariadb-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: glpi
+data:
+  MYSQL_DATABASE: glpi
+  MYSQL_USER: glpi

@@ -1,0 +1,69 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: glpi
+  namespace: glpi
+  labels:
+    app.kubernetes.io/name: glpi
+    app.kubernetes.io/instance: glpi-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: glpi
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: glpi
+    spec:
+      serviceAccountName: glpi
+      containers:
+        - name: glpi
+          image: fametec/glpi:9.5.3
+          imagePullPolicy: "IfNotPresent"
+          envFrom:
+            - configMapRef:
+                name: glpi-config
+            - secretRef:
+                name: glpi-secrets
+          # env:
+          #   - name: MARIADB_HOST
+          #     value: "mariadb.glpi.svc.cluster.local"
+          #   - name: MARIADB_PORT
+          #     value: "3306"
+          #   - name: MYSQL_ROOT_PASSWORD
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: phpmyadmin-secret
+          #         key: root-password
+          ports:
+            - name: glpi-http
+              containerPort: 80
+            - name: glpi-https
+              containerPort: 443
+            - name: glpi-ssh
+              containerPort: 22
+      #     resources:
+      #       limits:
+      #         memory: 512Mi
+      #         cpu: "1"
+      #       requests:
+      #         memory: 256Mi
+      #         cpu: "0.2"
+          volumeMounts:
+            - name: glpi-files
+              mountPath: /var/www/html/files
+            - name: glpi-plugins
+              mountPath: /var/www/html/plugins
+      volumes:
+        - name: glpi-files
+          persistentVolumeClaim:
+            claimName: glpi-glpi-files-local-pvc
+        - name: glpi-plugins
+          persistentVolumeClaim:
+            claimName: glpi-glpi-plugins-local-pvc
+

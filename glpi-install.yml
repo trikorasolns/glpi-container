@@ -1,0 +1,164 @@
+---
+- name: "Build GLPI container"
+  hosts: "{{ override_host | default ('localhost')}}"
+  gather_facts: no
+
+  vars:
+    glpi_version: '9.5.3'
+    glpi_root_folder: '/var/www'
+    remove_on_fail: true
+
+  tasks:
+    - name: "Prepare container for GLPI"
+      block:
+
+        # php:7.4.15-fpm
+        # composer:latest
+        - name: "Create container"
+          shell: "buildah from php:7.4.15-fpm-alpine"
+          register: buildah_from_res
+          when: container_name is not defined
+
+        # - name: "Debug container id"
+        #   debug:
+        #     msg: "buildah container name: {{ buildah_from_res.stdout }}"
+            
+        - name: "Fill container name variable"
+          set_fact: 
+            container_name: "{{ buildah_from_res.stdout }}"
+            when: container_name is not defined
+
+        # - name: "Get PWD"
+        #   shell: "buildah run {{ container_name }} -- pwd"
+        #   register: buildah_pwd_res
+
+        # - name: "Debug PWD"
+        #   debug:
+        #     msg: "buildah_pwd_res: {{ buildah_pwd_res }}"
+
+        - name: "Identify maintainer"
+          shell: "buildah config --label maintainer=\"Antonio Costa <a.costa@trikorasolutions.com>\" {{ container_name }}"
+
+        # - name: "Set working directory"
+        #   shell: "buildah config --workingdir {{ glpi_root_folder }} {{ container_name }}"
+
+        # - name: "Use user 1000"
+        #   shell: "buildah config --user 1000  {{ container_name }}"
+
+        # - name: "Install packages requierd by installation"
+        #   shell: "buildah run {{ container_name }} -- set -eux; apk add --no-cache --virtual tar"
+
+        - name: "Download composer installer"
+          command: "buildah run --log-level error {{ container_name }} -- curl -sS  --fail -o /tmp/installer -L \"https://getcomposer.org/installer\""
+
+        - name: "Install composer"
+          # command: "buildah run --log-level error {{ container_name }} -- php -- --install-dir=/usr/local/bin --filename=composer"
+          command: "buildah run --log-level error {{ container_name }} -- php /tmp/installer --install-dir=/usr/local/bin --filename=composer"
+          register: composer_install_res
+
+        - name: "Composer install res"
+          debug:
+            msg: "composer_install_res: {{ composer_install_res }}"
+
+        - name: "Install composer"
+          command: "buildah run {{ container_name }} -- ls -l /usr/local/bin"
+          register: ls_usr_local_bin_res
+
+        # - name: "debug ls_usr_local_bin_res "
+        #   debug:
+        #     msg: "ls_usr_local_bin_res: {{ ls_usr_local_bin_res }}"
+
+        # - name: "Download GLPI"
+        #   get_url: 
+        #     url: "https://github.com/glpi-project/glpi/releases/download/{{ glpi_version }}/glpi-{{ glpi_version }}.tgz"
+        #     dest: /tmp/glpi.tgz
+          # shell: "buildah run {{ container_name }} -- curl -v --fail -o /tmp/glpi.tgz -L \"https://github.com/glpi-project/glpi/releases/download/9.5.3/glpi-9.5.3.tgz\""
+
+        # - name: "Create temp GLPI folder"
+        #   file:
+        #     path: /tmp/glpi
+        #     state: directory
+
+        # - name: "Unarchive GLPI"
+        #   ansible.builtin.unarchive:
+        #     src: /tmp/glpi.tgz
+        #     dest: /tmp/
+
+        # - name: "Copy GLPI to container"
+        #   shell: "buildah copy {{ container_name }} /tmp/glpi.tgz /var/www/html"
+
+        - name: "Install apk libraries"
+          shell: "buildah run {{ container_name }} -- {{ item }}"
+          loop:
+            - "apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS"
+            - "apk add --update --no-cache autoconf icu-dev libpng-dev libxml2-dev openldap-dev"
+
+        - name: "Install docker php extensions"
+          shell: "buildah run {{ container_name }} -- {{ item }}"
+          loop:
+            - "docker-php-ext-install intl ldap gd exif xmlrpc mysqli opcache"
+
+        - name: "Implement production php.ini"
+          shell: "buildah run {{ container_name }} -- cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini"
+
+        - name: "Enable extensions"
+          shell: "buildah run {{ container_name }} -- sed -i \"s/;{{ item }}/{{ item }}/g\" /usr/local/etc/php/php.ini"
+          loop:
+            - extension=intl
+            - extension=mysqli
+
+        - name: "Download GLPI"
+          shell: "buildah run {{ container_name }} -- curl -v --fail -o /tmp/glpi.tgz -L \"https://github.com/glpi-project/glpi/releases/download/9.5.3/glpi-9.5.3.tgz\""
+
+        - name: "Unarchive GLPI"
+          # shell: "buildah run {{ container_name }} -- tar -xzf glpi.tgz --strip 1 --directory /app"
+          shell: "buildah run {{ container_name }} -- tar -xzf /tmp/glpi.tgz --strip 1 --directory /var/www/html"
+
+        - name: "Install composer"
+          command: "buildah run {{ container_name }} -- ls -l /var/www/html"
+          register: var_www_html_res
+
+        - name: "Download GLPI composer files"
+          shell: "buildah run {{ container_name }} -- curl -v --fail -o {{ item }} -L \"https://raw.githubusercontent.com/glpi-project/glpi/9.5/bugfixes/{{ item }}\""
+          loop:
+            - composer.json
+            - composer.lock
+
+        - name: "debug var_www_html_res "
+          debug:
+            msg: "var_www_html_res: {{ var_www_html_res }}"
+
+        - name: "Install GLPI dependencies"
+          shell: "buildah run {{ container_name }} -- php bin/console dependencies install"
+
+        - name: "Print container info"
+          shell: "buildah inspect {{ container_name }}"
+          register: buildah_inspect_res
+
+        - name: "Print container inspection"
+          debug:
+            msg: "{{ container_name }}: {{ buildah_inspect_res.stdout_lines }}"
+
+      rescue:
+
+        - name: "Print when errors"
+          ansible.builtin.debug:
+            msg: 'I caught an error, can do stuff here to fix it, :-)'
+
+        - name: "Remove container"
+          shell: "buildah rm {{ container_name }}"
+          when: remove_on_fail | bool
+
+      # always:
+
+        # - name: "Remove container"
+        #   shell: "buildah rm {{ container_name }}"
+        #   failed_when: false
+
+        # - name: "Remove zipped GLPI archive"
+        #   file:
+        #     path: /tmp/glpi.tgz
+        #     state: absent
+          # shell: "buildah run {{ container_name }} -- rm -f /tmp/glpi.tgz "
+
+...

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: glpi-service
+  namespace: glpi
+  labels:
+    app.kubernetes.io/name: glpi
+    app.kubernetes.io/instance: glpi-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+spec:
+  ports:
+    - name: glpi-http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    # - name: glpi-http
+    #   port: 443
+    #   protocol: TCP
+    #   targetPort: 443
+    # - name: glpi-shell
+    #   port: 22
+    #   protocol: TCP
+    #   targetPort: 22
+  selector:
+    app.kubernetes.io/name: glpi
+status:
+  loadBalancer: {}
