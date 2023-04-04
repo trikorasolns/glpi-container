@@ -25,9 +25,9 @@ RUN mkdir ${GLPI_CONFIG_DIR}
 RUN apt update \
 && apt install -y zlib1g-dev libpng-dev libicu-dev libzip-dev libbz2-dev libldap2-dev \
 && rm -rf /var/lib/apt/lists/* \
-&& docker-php-ext-configure intl \
-&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 exif ldap \
-&& docker-php-ext-enable mysqli ldap
+&& docker-php-ext-configure intl  \
+&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 exif ldap opcache \
+&& docker-php-ext-enable mysqli ldap 
 #RUN php -m
 
 COPY glpi/php/* /usr/local/etc/php/
