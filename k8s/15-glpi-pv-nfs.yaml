@@ -1,0 +1,47 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: glpi-glpi-files-pv
+  labels:
+    type: local
+    app.kubernetes.io/name: glpi
+    app.kubernetes.io/instance: glpi-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+spec:
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  mountOptions:
+    - hard
+  nfs:
+    path: /mnt/data/k8s-nfs/srvbm004/glpi/glpi/files
+    server: nas04.trikorasolutions.net
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: glpi-glpi-plugins-pv
+  labels:
+    type: local
+    app.kubernetes.io/name: glpi
+    app.kubernetes.io/instance: glpi-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+spec:
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  mountOptions:
+    - hard
+  nfs:
+    path: /mnt/data/k8s-nfs/srvbm004/glpi/glpi/plugins
+    server: nas04.trikorasolutions.net

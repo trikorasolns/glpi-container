@@ -1,0 +1,18 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glpi-mariadb-local-pvc
+  namespace: glpi
+  labels:
+    app.kubernetes.io/name: mariadb
+    app.kubernetes.io/instance: mariadb-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: glpi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual

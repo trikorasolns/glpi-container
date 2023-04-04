@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: glpi
+  # selfLink: /api/v1/namespaces/kubernetes-dashboard/services/kubernetes-dashboard
+  # uid: a47d547e-1316-49e6-b9ef-88c0b7ce3d07
+  # resourceVersion: '521'
+  # creationTimestamp: '2020-12-09T23:59:00Z'
+  labels:
+    app.kubernetes.io/name: mariadb
+    app.kubernetes.io/instance: mariadb-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: glpi
+spec:
+  type: NodePort
+  # type: ClusterIP
+  ports:
+    - name: mariadb
+      port: 3306
+      protocol: TCP
+      # targetPort: 3306
+      # nodePort: 30001
+  selector:
+    app.kubernetes.io/name: mariadb
+status:
+  loadBalancer: {}

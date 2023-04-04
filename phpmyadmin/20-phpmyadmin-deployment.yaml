@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin-deployment
+  namespace: glpi
+  labels:
+    app.kubernetes.io/name: phpmyadmin
+    app.kubernetes.io/instance: phpmyadmin-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: db-web-console
+    app.kubernetes.io/part-of: glpi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: phpmyadmin
+        app.kubernetes.io/instance: phpmyadmin-glpi
+        app.kubernetes.io/version: "9.4.5"
+        app.kubernetes.io/component: db-web-console
+        app.kubernetes.io/part-of: glpi
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin/phpmyadmin
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: phpmyadmin-config
+            - secretRef:
+                name: phpmyadmin-secret
+          # env:
+          #   - name: PMA_HOST
+          #     value: "mariadb.glpi.svc.cluster.local"
+          #   - name: PMA_PORT
+          #     value: "3306"
+          #   - name: MYSQL_ROOT_PASSWORD
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: phpmyadmin-secret
+          #         key: root-password

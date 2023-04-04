@@ -1,0 +1,47 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: glpi-glpi-files-local-pv
+  labels:
+    type: local
+    app.kubernetes.io/name: glpi
+    app.kubernetes.io/instance: glpi-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: glpi
+    name: glpi-glpi-files-local-pvc
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /mnt/gluster-gv0-nas05t/k8s/glpi/glpi-files
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: glpi-glpi-plugins-local-pv
+  labels:
+    type: local
+    app.kubernetes.io/name: glpi
+    app.kubernetes.io/instance: glpi-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: glpi
+    name: glpi-glpi-plugins-local-pvc
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /mnt/gluster-gv0-nas05t/k8s/glpi/glpi-plugins
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual

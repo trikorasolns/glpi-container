@@ -1,0 +1,30 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: glpi-mariadb-pv
+  labels:
+    type: local
+    app.kubernetes.io/name: mariadb
+    app.kubernetes.io/instance: mariadb-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: glpi
+spec:
+  accessModes:
+    - ReadWriteMany
+  # claimRef:
+  #   namespace: glpi
+  #   name: glpi-mariadb-pvc
+  capacity:
+    storage: 10Gi
+  persistentVolumeReclaimPolicy: Retain
+  # storageClassName: manual
+  storageClassName: nfs
+  mountOptions:
+    - hard
+  # volumeMode: Filesystem
+  # hostPath:
+  #   path: "/mnt/data"
+  nfs:
+    path: /mnt/data/k8s-nfs/srvbm004/glpi/mariadb
+    server: nas04.trikorasolutions.net

@@ -1,0 +1,27 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: phpmyadmin-ingress
+  namespace: glpi
+  labels:
+    app.kubernetes.io/name: phpmyadmin
+    app.kubernetes.io/instance: phpmyadmin-glpi
+    app.kubernetes.io/version: "9.4.5"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: glpi
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+spec:
+  rules:
+    - host: phpmyadmin-glpi.srvbm003.trikorasolutions.net
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: phpmyadmin-service
+              servicePort: 80
+status:
+  loadBalancer:
+    ingress:
+      - ip: 192.168.1.90
