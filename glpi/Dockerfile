@@ -11,6 +11,7 @@ FROM php:8.1-apache
 ENV GLPI_CONFIG_DIR=/etc/glpi
 ENV GLPI_VAR_DIR=/var/lib/glpi
 ENV GLPI_LOG_DIR=/var/log/glpi
+ENV GLPI_WWW=/var/www/glpi
 
 RUN mkdir ${GLPI_CONFIG_DIR}
 
@@ -30,14 +31,19 @@ RUN apt update \
 && docker-php-ext-enable mysqli ldap 
 #RUN php -m
 
-COPY glpi/php/* /usr/local/etc/php/
+COPY glpi/php/* /usr/local/etc/php/conf.d/
+COPY glpi/etc/httpd/glpi.conf /etc/httpd/conf.d/
+COPY glpi/etc/glpi/local_define.php /etc/glpi/
+COPY glpi/www/inc/downstream.php ${GLPI_WWW}/inc/
 
 COPY  --from=unzipper /opt/glpi/files $GLPI_VAR_DIR
 COPY  --from=unzipper /opt/glpi/config $GLPI_CONFIG_DIR
 
 COPY  --from=unzipper /opt/ /var/www/
 
-RUN rm -Rf /var/www/glpi/files /var/www/glpi/config
+RUN chown -R www-data:www-data /var/www/glpi \
+&& chmod -R 755 /var/www/glpi \
+&& rm -Rf /var/www/glpi/files /var/www/glpi/config
 
 VOLUME $GLPI_VAR_DIR
 VOLUME $GLPI_LOG_DIR
