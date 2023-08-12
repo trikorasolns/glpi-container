@@ -1,14 +1,21 @@
 = GLPI Backup N Restore
-:author:    A. Costa
-:email:     <a.costa@trikorasolutions.com>
-// :Date:      20210222
+A.C. <a dot costa at trikorasolutions dot com>
+:Date:      {docdate}
 :Revision:  1
-:toc:       left
+:table-caption: Table
+:toc: left
 :toc-title: Table of Contents
 :icons: font
+:source-highlighter: rouge
 :description: This section describes the backup and restore instructions for GLPI.
-
-:toc:
+required to deploy GLPI on a Kubernetes cluster.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
 
 == Preparation
 
