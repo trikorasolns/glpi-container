@@ -1,0 +1,180 @@
+= Troubleshooting
+Angel Casanova; Antonio Costa
+:revdate: {docdate}
+:toc: left
+:icons: font
+:description: This section describes how to deploy the application on kind using Ansible.
+:source-highlighter: rouge
+
+This document will guide you to make a full localhost deployment of kubernetes in kind.
+
+== Error `No module named 'kubernetes'
+
+*Problem*
+
+[source]
+----
+An exception occurred during task execution. To see the full traceback, use -vvv. The error was: ModuleNotFoundError: No module named 'kubernetes'
+fatal: [localhost]: FAILED! => {"changed": false, "error": "No module named 'kubernetes'", "msg": "Failed to import the required Python library (kubernetes) on ws13.trikorasolutions.net's Python /usr/bin/python3. Please read the module documentation and install it in the appropriate location. If the required library is installed, but Ansible is using the wrong Python interpreter, please consult the documentation on ansible_python_interpreter"}
+----
+
+*Symptoms*
+
+*Cause*
+
+Missing python kubernetes library.
+
+*Solution*
+
+Follow the link:ansible.adoc#_requirements[requirements] installation procedure.
+
+[%collapsible]
+====
+Install the requirements file.
+
+[source,bash]
+----
+pip install -r src/main/kind/requirements.txt
+----
+====
+
+== DEMO is not loaded
+
+*Problem*
+
+*Symptoms*
+
+[source]
+----
+Mutiny had to drop the following exception: io.vertx.mysqlclient.MySQLException: Table 'trikora_itsm.point_assignment' doesn't exist
+----
+
+[source,bash]
+----
+kubectl -n twm logs -f pod/itwm-bl-66bdf4d686-lcbft -c load-demo
+----
+
+*Cause*
+
+*Solution*
+
+Delete the POD
+
+[source,bash]
+----
+kubectl -n twm delete pod/itwm-bl-66bdf4d686-zhg2v
+----
+
+Check the logs of the demo loading.
+
+[source,bash]
+----
+kubectl -n twm logs -f pod/itwm-bl-66bdf4d686-lcbft -c load-demo
+----
+
+== Buildah HTTP/HTTPS error when pusing image to container registry
+
+*Problem*
+
+`http: server gave HTTP response to HTTPS client` error when pushing image to docker.
+
+*Symptoms*
+
+*Cause*
+
+*Solution*
+
+Add the insecure configuration to the kind container registry.
+
+This is done by creating a `/etc/containers/registries.conf.d/kind-registry.conf` having as contents the following.
+
+.`kind-registry.conf` contents
+[source]
+----
+[[registry]]
+location = "kind-registry.local:5000"
+insecure = true
+----
+
+=== (Just In Podman) Error: unable to start container <container-id>: plugin type="bridge"
+
+Error: unable to start container <container-id>: plugin type="bridge" failed (add): cni plugin bridge failed: failed to allocate for range 0: fc00:f853:ccd:e793::3 has been allocated to <container-id>, duplicate allocation is not allowed
+
+Podman stop did not clear up the ports, due to a race condition (inside the podman code).
+So it is necessary to wipe the resources of the container manually.
+Just run.
+
+[source,bash]
+----
+podman container cleanup <container-name>
+----
+
+=== (Just In Podman) Kind get clusters returns 'No kind clusters found'.
+
+If the `kind.sh` script exit without any errors but after running `kind get clusters` you get nothing, then you need to set the kind CRI engine to podman.
+
+[source,bash]
+----
+export KIND_EXPERIMENTAL_PROVIDER=podman
+----
+
+This issue happens since `kind` uses docker by default.
+
+=== DNS error: dial tcp: lookup twm-registry on 10.89.0.1:53: no such host
+
+Description of the error: Failed to pull image "localhost:5000/trikora_workplace_mgr_dev_keycloak:20.0.1-latest": rpc error: code = Unknown desc = failed to pull and unpack image "localhost:5000/trikora_workplace_mgr_dev_keycloak:20.0.1-latest": failed to resolve reference "localhost:5000/trikora_workplace_mgr_dev_keycloak:20.0.1-latest": failed to do request: Head "http://twm-registry:5000/v2/trikora_workplace_mgr_dev_keycloak/manifests/20.0.1-latest?ns=localhost%3A5000": dial tcp: lookup twm-registry on 10.89.0.1:53: no such host
+
+There is not a real solution for this.
+It seems to be a DNS misconfiguration.
+Use `kind load` instead.
+
+=== Web 502: upstream sent too big header while reading response header from upstream
+
+Our keycloak is using an ingress whose type is nginx.
+So the configuration of the nginx-controller need to be adjusted to allow the keycloak headers.
+The problem comes since the keycloak headers are longer the 1k, thus, they produce an overflow in the proxy buffers.
+
+Because of that, we need to increase the buffers in order to fix this.
+As this would be fixed in the kind deployment, here is a workaround to fix it manually:
+
+[source,bash]
+----
+kc -n ingress exec -it $(kc -n ingress get pods | grep ingress | awk '{print $1}') -- sh
+vi nginx.conf
+----
+
+Then, it is mandatory to override the following parameters:
+
+[source,bash]
+----
+client_header_buffer_size 16k
+large_client_header_buffers 4 16k
+proxy_headers_hash_max_size 512
+proxy_headers_hash_buket_size 64
+
+proxy_buffers 4 16k
+proxy_buffers_size 16k
+----
+
+The last two parameter should be enough to end up with the problem but the others parameters are based on web suggestions to avoid problems in the future.
+This error has been corrected by overriding the configuration in the keycloak ingress file.
+
+
+== Cannot open keycloak URL
+
+*Problem*
+
+Cannot access the keycloak URL (http://keycloak.twm.svc.cluster.local/auth/).
+
+*Symptoms*
+
+When opening the console a `The connection was reset` error is shown on
+the browser.
+
+*Cause*
+
+Ingress is not deployed.
+
+*Solution*
+
+

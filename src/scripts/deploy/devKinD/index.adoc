@@ -1,0 +1,33 @@
+= Trikora Worlplace Manager Kind deployment Guide
+Angel Casanova; Antonio Costa
+:revdate: {docdate}
+:toc: left
+:toclevels: 3
+:icons: font
+:description: This document describes the steps to deploy Trikora Workplace \
+Manager using a Kind cluster on a workstation (localhost).
+
+== Introduction
+
+This document describes the steps to deploy Trikora Workplace Manager using
+a Kind cluster on a workstation (localhost).
+
+== Deployment using Ansible
+
+link:ansible.adoc[Kind Setup Guide]
+
+== Manual deployment
+
+link:kind-setup.adoc[Kind Setup Guide]
+
+link:application-deployment.adoc[How to deploy the App]
+
+link:docker-registry.adoc[Docker Registry Guide]
+
+== User Guide
+
+link:usage.adoc[Usage Guide]
+
+== Troubleshooting
+
+link:troubleshooting.adoc[Troubleshooting Guide]

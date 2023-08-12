@@ -1,0 +1,20 @@
+# tag::podmanPorts[]
+podman_ports:
+  - 9306:3306
+  - 9300:3000
+# Apache
+  - 9380:8080
+  - 9343:8443
+# end::podmanPorts[]
+
+pod_name: trikorasolns_glpi
+
+image_prefix: trikorasolns_glpi
+
+mariadb_version: 10.6
+
+mysql:
+  database: trikorasolns_glpi
+  user: trikorasolns_glpi
+  password: trikorasolns_glpi
+  root_password: trikorasolns_glpi

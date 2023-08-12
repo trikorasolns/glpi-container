@@ -1,0 +1,41 @@
+= Build GLPI Container
+A. Costa <a dot costa at trikorasolutions dot com>
+:description: This document described the steps to build this GLPI image.
+:icons: font
+:revdate: {docdate}
+:toc:       left
+:toc-title: Table of Contents
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+== Requirements
+
+* link:https://buildah.io/[Buildah]
+
+== Build image
+
+Build the GLPI init image.
+
+[source,bash]
+----
+buildah bud -t trikorasolns_glpi_init -f src/main/init/Dockerfile
+----
+
+Build the GLPI image for the Web Application.
+
+[source,bash]
+----
+buildah bud -t trikorasolns_glpi_web -f src/main/web/Dockerfile
+----
+
+TODO: Build the GLPI image for the Cron Application.
+
+[source,bash]
+----
+buildah bud -t trikorasolns_glpi_cron -f src/main/cron/Dockerfile
+----
