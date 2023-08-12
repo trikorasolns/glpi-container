@@ -1,0 +1,40 @@
+= GLPI
+A.C. <a dot costa at trikorasolutions dot com>
+:Date:      {docdate}
+:Revision:  1
+:table-caption: Table
+:toc: left
+:toc-title: Table of Contents
+:icons: font
+:source-highlighter: rouge
+:description: The aim of this project is to implement the infrastructure 
+required to deploy GLPI on a Kubernetes cluster.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+== Development Guides
+
+link:build.adoc[Build the Container Image]
+
+link:deployPodman.adoc[Deploy the image locally using Podman]
+
+link:deployKind.adoc[Deploy the image locally using KIND]
+
+== Operational Guides
+
+TBD
+
+== Kubernetes Guides
+
+TBD
+
+link:k8s/backupNrestore.adoc[Backup and Restore guide]
+
+== Troubleshooting
+
+link:troubleshooting.adoc[Troubleshooting guide]
