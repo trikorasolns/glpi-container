@@ -180,7 +180,6 @@ Do you want to continue ? [Yes/no]Yes
 
 New security key generated; database updated.
 [root@glpi-5847c6b6b-scv8b html]# exit
-[ajc102@lt12 ~]$
 ----
 #end::reset-security-key[]
 

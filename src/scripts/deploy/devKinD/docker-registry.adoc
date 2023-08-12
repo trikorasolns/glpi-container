@@ -1,0 +1,180 @@
+= Docker Registry Guide
+Angel Casanova; Antonio Costa
+:revdate: {docdate}
+:toc: left
+:icons: font
+:description: This section describes alternative ways of pushing images \
+to the local domain.
+:source-highlighter: rouge
+
+
+== Introduction
+
+This document describes how to push images to local domain by using different technologies and then testing than the images has been successfully uploaded.
+
+== How to push an image to a local domain
+
+[source,bash]
+----
+buildah push $(buildah images --filter reference=<image-name> --format="{{.ID}}") \
+docker://localhost:5000/<image-name>:<image-version>-$(buildah images --filter reference=<image-name> --format="{{.Tag}}")
+----
+
+.Deprecated using Podman (Click for details)
+[%collapsible]
+======
+.Using PODMAN
+[]
+====
+Collect the image ID for the Keycloak dev image.
+
+[source,bash]
+----
+podman image ls --filter reference=trikora_workplace_mgr_dev_keycloak --format="{{.Id}}"
+----
+
+Push the image to the local repository.
+
+[source,bash]
+----
+podman push $(podman image ls --filter reference=trikora_workplace_mgr_dev_keycloak --format="{{.Id}}") \
+  docker://localhost:5000/trikora_workplace_mgr_dev_keycloak:20.0.1-$(podman image ls --filter reference=trikora_workplace_mgr_dev_keycloak --format="{{.Tag}}")
+----
+====
+
+======
+
+.Deprecated using Docker (Click for details)
+[%collapsible]
+======
+.Using Docker
+[]
+====
+First build and publish our custom image.
+
+[source,bash]
+----
+docker build -t trikora_workplace_mgr_dev_keycloak:20.0.3  src/main/images/keycloak/
+----
+
+See the local images:
+
+[source,bash]
+----
+docker images
+----
+
+Extract the ID from the local image:
+
+[source,bash]
+----
+docker images | grep trikora_workplace_mgr_dev_keycloak | awk '{print $3}'
+----
+
+Tag the image before pushing it.
+
+[source,bash]
+----
+docker tag $(docker images | grep -w "trikora_workplace_mgr_dev_keycloak" | awk '{print $3}') \
+  localhost:5000/trikora_workplace_mgr_dev_keycloak:20.0.3-latest
+----
+
+Push the image to the local repository.
+
+[source,bash]
+----
+docker push localhost:5000/trikora_workplace_mgr_dev_keycloak:20.0.3
+----
+====
+
+======
+
+== How to see all images in the local domain
+
+[source,bash]
+----
+curl -s http://localhost:5000/v2/_catalog | jq .
+----
+
+[source,json]
+----
+[
+  {
+    "repositories": [
+      "trikora_workplace_mgr_dev_keycloak"
+    ]
+  }
+]
+----
+
+== How to see all the tags for a concrete image
+
+[source,bash]
+----
+curl -s http://localhost:5000/v2/trikora_workplace_mgr_dev_keycloak/tags/list | jq .
+----
+
+[source,json]
+----
+{
+  "name": "trikora_workplace_mgr_dev_keycloak",
+  "tags": [
+    "20.0.3-latest"
+  ]
+}
+----
+
+== How to see the timestamp for an image
+
+This is useful to check the timestamp when the image was uploaded.
+
+[source,bash]
+----
+curl -s http://localhost:5000/v2/trikora_workplace_mgr_dev_keycloak/tags/20.0.3-latest | jq .
+----
+
+[source,json]
+----
+{
+  "name": "trikora_workplace_mgr_dev_keycloak",
+  "tags": [
+    "20.0.1-latest"
+  ]
+}
+----
+
+
+== How to see the digest for an image
+
+[source,bash]
+----
+curl -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+localhost:5000/v2/trikora-itwm/itwm-bl/manifests/0.0.5-SNAPSHOT | jq .
+----
+
+== How to delete an image
+
+[source,bash]
+----
+curl -sS -X DELETE localhost:5000/v2/trikora-itwm/itwm-bl/manifests/<digest> | jq .
+----
+
+If the `curl` command include your image, then any service would be able to pull it.
+
+== See the images inside a control panel
+
+Use `kubectl get nodes` to see your nodes, then, you need dto connect to the node:
+
+[source,bash]
+----
+podman exec -it <node-name>  bash
+crictl images
+----
+
+== References
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/building_running_and_managing_containers/assembly_building-container-images-with-buildah_building-running-and-managing-containers#proc_pushing-containers-to-a-private-registry_assembly_building-container-images-with-buildah[Push images with buildah]
+
+
+
+

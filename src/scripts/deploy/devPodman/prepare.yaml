@@ -1,0 +1,129 @@
+---
+- name: "Prepare environment for deploying GLPI locally using Podman"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+#        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+  tasks:
+    - name: "Create POD"
+      containers.podman.podman_pod:
+        name: "{{ pod_name }}"
+        state: created
+        ports: "{{ podman_ports }}"
+
+    - name: "Run mariadb container"
+      containers.podman.podman_container:
+        name: "{{ image_prefix }}_db"
+        image: "mariadb:{{ mariadb_version }}"
+        pod: "{{ pod_name }}"
+        state: started
+        env:
+          MYSQL_DATABASE: "{{ mysql.database }}"
+          MYSQL_USER: "{{ mysql.user }}"
+          MYSQL_PASSWORD: "{{ mysql.password }}"
+          MYSQL_ROOT_PASSWORD: "{{ mysql.root_password }}"
+
+    - name: "Wait for db container to be up and running"
+      ansible.builtin.shell: |
+        podman wait --condition running {{ image_prefix }}_db
+
+    - name: "Wait for db container to be up and running"
+      ansible.builtin.wait_for:
+        host: "127.0.0.1"
+        port: 9306
+
+    - name: "Create GLPI volumes"
+      containers.podman.podman_volume:
+        state: present
+        name: volume_to_create
+        label:
+          part-of: glpi
+      loop:
+        - trikorasolns_glpi_glpi_var
+        - trikorasolns_glpi_glpi_etc
+      loop_control:
+        loop_var: volume_to_create
+
+          # key2: value2
+        # options:
+        #   - "device=/dev/loop1"
+        #   - "type=ext4"
+
+    # - name: "Create volume folder"
+    #   ansible.builtin.file:
+    #     mode: '0777'
+    #     path: /tmp/glpi/var_lib
+    #     state: directory
+
+    # - name: "Create volume sub-folder"
+    #   ansible.builtin.file:
+    #     mode: '0777'
+    #     path: "/tmp/glpi/var_lib/{{ glpi_var_subfolder }}"
+    #     state: directory
+    #   loop:
+    #     - _cache
+    #     - _cron
+    #     - _dumps
+    #     - _graphs
+    #     - _inventories
+    #     - _locales
+    #     - _lock
+    #     - _log
+    #     - _pictures
+    #     - _plugins
+    #     - _rss
+    #     - _sessions
+    #     - _templates
+    #     - _tmp
+    #     - _uploads
+    #   loop_control:
+    #     loop_var: glpi_var_subfolder
+
+    - name: Pause for 5 seconds
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: "Launch init container"
+      containers.podman.podman_container:
+        name: "{{ image_prefix }}_init"
+        image: "localhost/{{ image_prefix }}"
+        pod: "{{ pod_name }}"
+        # privileged: true
+        state: started
+        command: /opt/glpi/glpi-install.sh
+        # entrypoint: /opt/glpi/glpi-install.sh
+        user: 33
+        group_add:
+          - 33
+        volumes:
+          - trikorasolns_glpi_glpi_var:/var/lib/glpi
+          - trikorasolns_glpi_glpi_etc:/etc/glpi
+          # - /tmp/glpi/var_lib:/var/lib/glpi:Z
+          # - /tmp/glpi/var_lib:/var/lib/glpi
+        env:
+          GLPI_DB_HOST: "{{ image_prefix }}_db"
+          GLPI_DB_PORT: 3306
+          GLPI_DB_USER_NAME: "{{ mysql.user }}"
+          GLPI_DB_USER_PASSWORD: "{{ mysql.password }}"
+          GLPI_DB_NAME: "{{ mysql.database }}"
+          # "pt_BR", "es_ES"
+          GLPI_LANGUAGE: en_GB
+      register: init_container_res
+      # async: 45
+      # poll: 5
+
+    - name: "Wait for init container to end"
+      ansible.builtin.shell: |
+        podman wait --condition stopped {{ image_prefix }}_init
+      # ansible.builtin.wait_for:
+        # port: 80
+        # state: drained
+...

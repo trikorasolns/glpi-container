@@ -1,0 +1,50 @@
+---
+- name: "Undeploy local GLPI Podman POD"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+#        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+  tasks:
+    - name: "Delete POD"
+      containers.podman.podman_pod:
+        name: "{{ pod_name }}"
+        state: absent
+
+    - name: "Delete glpi volumes"
+      containers.podman.podman_volume:
+        name: "{{ volume_to_delete }}"
+        state: absent
+      loop:
+        - trikorasolns_glpi_glpi_var
+        - trikorasolns_glpi_glpi_etc
+      loop_control:
+        loop_var: volume_to_delete
+
+    # - block:
+    # - name: "Delete volume folder"
+    #   ansible.builtin.file:
+    #     path: /tmp/glpi/var_lib
+    #     state: absent
+    #   register: delete_result
+    #   # failed_when: false
+    #   ignore_errors: true
+
+    # - name: "Print delete result"
+    #   ansible.builtin.debug:
+    #     var: delete_result
+
+    # - name: "Delete volume folder SUDO"
+    #   ansible.builtin.file:
+    #     path: /tmp/glpi/var_lib
+    #     state: absent
+    #   become: true
+    #   when: delete_result.failed
+...

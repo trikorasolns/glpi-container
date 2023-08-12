@@ -1,0 +1,221 @@
+= Ansible Kind Deploy Guide
+Angel Casanova; Antonio Costa
+:revdate: {docdate}
+:toc: left
+:icons: font
+:description: This section describes how to deploy the application on kind using Ansible.
+:source-highlighter: rouge
+
+This document will guide you to make a full localhost deployment of kubernetes in kind.
+
+== Requirements
+
+Install the requirements file.
+
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/prepare-host.yaml --ask-become-pass
+pip install -r src/deployment/kind/requirements.txt
+----
+
+=== Kind
+
+[WARNING]
+====
+Before starting the deployment make sure the `kubectl` configuration
+is pointing to the kind cluster. Obtaining the nodes for the kubernetes
+cluster should return a node called `twm-control-plane` which is the name
+used on the kind installation.
+
+[source,bash]
+----
+$ kubectl get nodes
+NAME                STATUS   ROLES           AGE   VERSION
+twm-control-plane   Ready    control-plane   13d   v1.25.3
+----
+
+====
+
+=== Environment Variables
+
+[horizontal]
+`HELM_CHART_OSS_FOLDER`:: Location of the https://github.com/trikorasolns/helm-charts
+git repository on the local host.
+
+== Deployment
+
+=== Configure k8s
+
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/deploy-app.yaml
+----
+
+=== Keycloak
+
+[horizontal]
+`skip_image_build`:: Optional parameter to skip building and deploying
+the keycloak container image to the local registry.
+
+.Build keycloak image and deploy it
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/deploy-keycloak.yaml
+----
+
+.Deploy existing keycloak image
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/deploy-keycloak.yaml -e skip_image_build=true
+----
+
+=== Mariadb
+
+Install mariadb database.
+
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/deploy-mariadb.yaml -e trikora_helm_project_dir=${HELM_CHART_OSS_FOLDER}
+----
+
+Remove mariadb database.
+
+[source,bash]
+----
+TBD
+----
+
+=== ITSM-BL
+
+Install the `itsm-bl` Quarkus module.
+
+[WARNING]
+====
+The installation script only works if the application isn't deployed.
+If it's required to execute the deployment after an installation,
+delete the deployed application.
+====
+
+[horizontal]
+`skip_image_build`:: Optional parameter to skip building and deploying
+the itsm-bl container image to the local registry.
+
+`tkr_demo_skip`:: Do not create DEMO
+
+`tkr_db_generation_create_schemas`:: Database schema creation options: none, create, ...
+If the demo is created then the database schema will be `drop-and-create`
+before generating the demo data.
+
+.Commands to deploy itsm-bl
+[source,bash]
+----
+sdk env
+ansible-playbook src/deployment/kind/ansible/deploy-itsmbl.yaml \
+  -e itwm_bl_project_folder=$(pwd)
+----
+
+.Commands to deploy itsm-bl without building the container image
+[source,bash]
+----
+sdk env
+ansible-playbook src/deployment/kind/ansible/deploy-itsmbl.yaml -e skip_image_build=true \
+  -e itwm_bl_project_folder=$(pwd)
+----
+
+.Commands to deploy an empty itsm-bl application
+[source,bash]
+----
+sdk env
+ansible-playbook src/deployment/kind/ansible/deploy-itsmbl.yaml \
+  -e itwm_bl_project_folder=$(pwd) \
+  -e tkr_demo_skip=true \
+  -e tkr_db_generation_create_schemas=create
+----
+
+To check the progression on the creation of the demo execute the following \
+command:
+
+[source,bash]
+----
+kubectl -n twm logs -f -c load-demo $(kubectl get pods -n twm | grep itwm-bl |  awk '{print $1}')
+----
+
+Uninstall the `itsm-bl` Quarkus module.
+
+[NOTE]
+====
+Before removing the application the `build/kubernetes/kubernetes.yml`
+must exist and it's only created by building the application.
+
+[source,bash]
+----
+sdk env
+ansible-playbook src/deployment/kind/ansible/build-itsmbl.yaml -e trikora_workplace_manager_root_dir=$(pwd)
+----
+====
+
+
+[source,bash]
+----
+kubectl delete -f build/kubernetes/kubernetes.yml
+----
+
+
+=== ITSM-WEB
+
+Deploy the `itsm-web` frontend.
+
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/deploy-itsmweb.yaml \
+  -e itwm_web_project_folder="$(pwd)/../itsm-web"
+----
+
+[NOTE]
+====
+
+Manual steps.
+
+[%collapsible]
+=====
+[source,bash]
+----
+buildah build -t trikora-itsm-webapp:$(jq .version angular.json) -f Dockerfile-kind .
+
+buildah push $(buildah images --filter reference=trikora-itsm-webapp --format="{{.ID}}") \
+docker://localhost:5000/trikora-itsm-webapp:$(buildah images --filter reference=trikora-itsm-webapp --format="{{.Tag}}")
+
+kubectl apply -f kind/templates/10-configmap.yaml
+kubectl apply -f kind/templates/15-secret.yaml
+kubectl apply -f kind/templates/20-deployment.yaml
+kubectl apply -f kind/templates/30-service.yaml
+----
+=====
+====
+
+=== Grafana
+
+[source,bash]
+----
+ansible-playbook src/deployment/kind/ansible/deploy-grafana.yaml
+----
+
+=== PHP My Admin
+
+Install...
+
+[source,bash]
+----
+sdk env
+ansible-playbook src/deployment/kind/ansible/deploy-phpmyadmin.yaml \
+  -e trikora_helm_project_dir=${HELM_CHART_OSS_FOLDER}
+----
+
+Remove...
+
+[source,bash]
+----
+sdk env
+ansible-playbook src/deployment/kind/ansible/undeploy-phpmyadmin.yaml \
+  -e trikora_helm_project_dir=${HELM_CHART_OSS_FOLDER}
+----
