@@ -1,5 +1,6 @@
 <IfModule mod_authz_core.c>
-    Require local
+    ; Require local
+    Require all denied
 </IfModule>
 <IfModule !mod_authz_core.c>
     order deny, allow
