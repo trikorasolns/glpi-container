@@ -1,10 +1,17 @@
 # Web Application
-FROM php:8.1-apache
+FROM trikorasolns_glpi_init:latest
 
-RUN mkdir ${GLPI_CONFIG_DIR}
+ARG HTTP_WWW=/var/www/html
+ARG GLPI_WWW=${HTTP_WWW}/glpi
+ARG LOCAL_INSTALLATION_FOLDER=src/main/init
+
+COPY ${LOCAL_INSTALLATION_FOLDER}/etc/httpd/sites-enabled/* /etc/apache2/sites-enabled/
+COPY ${LOCAL_INSTALLATION_FOLDER}/etc/httpd/ports.conf /etc/apache2/
+
+RUN rm ${GLPI_WWW}/install/install.php
 
 WORKDIR ${GLPI_WWW}
 
 EXPOSE 8080
-EXPOSE 443
+EXPOSE 8443
 

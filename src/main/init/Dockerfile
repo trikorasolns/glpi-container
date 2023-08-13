@@ -29,21 +29,20 @@ RUN mkdir ${GLPI_CONFIG_DIR} ${GLPI_OPT_DIR}
 #RUN docker-php-ext-install mysqli pdo pdo_mysql fileinfo gd json mbstring session zlib simplexml xml intl ldap openssl zlib && docker-php-ext-enable pdo_mysql
 # fileinfo  json mbstring session zlib simplexml xml intl ldap openssl zlib 
 RUN apt update \
-&& apt install -y zlib1g-dev libpng-dev libicu-dev libzip-dev libbz2-dev libldap2-dev \ 
-&& rm -rf /var/lib/apt/lists/* \ 
-&& docker-php-ext-configure intl \ 
-&& docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 exif ldap opcache \ 
-&& docker-php-ext-enable mysqli ldap 
+  && apt install -y zlib1g-dev libpng-dev libicu-dev libzip-dev libbz2-dev libldap2-dev \ 
+  && rm -rf /var/lib/apt/lists/* \ 
+  && docker-php-ext-configure intl \ 
+  && docker-php-ext-install gd intl mysqli pdo pdo_mysql zip bz2 exif ldap opcache \ 
+  && docker-php-ext-enable mysqli ldap \
+  && a2enmod rewrite
 #RUN php -m
 
 #COPY web/etc/glpi/php/* /usr/local/etc/php/conf.d/
 COPY ${LOCAL_INSTALLATION_FOLDER}/php/* /usr/local/etc/php/conf.d/
+RUN rm /etc/apache2/sites-enabled/000-default.conf
 # COPY web/etc/glpi/local_define.php /etc/glpi/
 COPY ${LOCAL_INSTALLATION_FOLDER}/etc/glpi/* ${GLPI_CONFIG_DIR}/
-COPY ${LOCAL_INSTALLATION_FOLDER}/www/inc/downstream.php ${GLPI_WWW}/inc/
-COPY ${LOCAL_INSTALLATION_FOLDER}/etc/httpd/glpi.conf /etc/apache2/sites-enabled
-COPY ${LOCAL_INSTALLATION_FOLDER}/etc/httpd/ports.conf /etc/apache2/
-RUN rm /etc/apache2/sites-enabled/000-default.conf
+COPY ${LOCAL_INSTALLATION_FOLDER}/var/www/glpi/inc/downstream.php ${GLPI_WWW}/inc/
 COPY src/main/init/script/glpi-install.sh ${GLPI_OPT_DIR}/
 
 COPY  --from=unzipper /opt/glpi/files $GLPI_VAR_DIR
@@ -61,6 +60,7 @@ RUN mkdir ${GLPI_VAR_DIR}/_templates \
 # && rm -Rf /var/www/glpi/files /var/www/glpi/config
 
 VOLUME $GLPI_VAR_DIR
+VOLUME $GLPI_CONFIG_DIR
 VOLUME $GLPI_LOG_DIR
 
 WORKDIR ${GLPI_WWW}

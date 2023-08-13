@@ -94,7 +94,7 @@
     - name: "Launch init container"
       containers.podman.podman_container:
         name: "{{ image_prefix }}_init"
-        image: "localhost/{{ image_prefix }}"
+        image: "localhost/{{ image_prefix }}_init"
         pod: "{{ pod_name }}"
         # privileged: true
         state: started

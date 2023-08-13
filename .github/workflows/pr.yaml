@@ -5,25 +5,39 @@ jobs:
   build:
     name: Build the image
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:"10.6"
+        ports:
+          - 3306
+        env:
+          MYSQL_USER: trikorasolns_glpi
+          MYSQL_PASSWORD: trikorasolns_glpi
+          MYSQL_DATABASE: trikorasolns_glpi
+          MYSQL_ROOT_PASSWORD: trikorasolns_glpi
     strategy:
       matrix:
         python-version: ["3.11"]
+        # mariadb-version: ["10.6"]
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # needed for progressive mode to work
-      - name: Build Image
+      - name: Build init Image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: my-new-image
+          image: trikorasolns_glpi_init
           containerfiles: |
             src/main/init/Dockerfile
           tags: v1
-          # content: |
-          #   target/spring-petclinic-2.3.0.BUILD-SNAPSHOT.jar
-          # entrypoint: java -jar spring-petclinic-2.3.0.BUILD-SNAPSHOT.jar
-          # port: 8080
+      - name: Build web Image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: trikorasolns_glpi_web
+          containerfiles: |
+            src/main/web/Dockerfile
+          tags: v1
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
       - name: Install dependencies
@@ -31,6 +45,12 @@ jobs:
           python -m pip install --upgrade pip
           # pip install ruff pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      # - uses: shogo82148/actions-setup-mysql@v1
+      #   with:
+      #     distribution: "mariadb"
+      #     mysql-version: "${{ matrix.mariadb-version }}"
+      #     user: trikorasolns_glpi
+      #     password: trikorasolns_glpi
   #     - name: Run ansible-lint
   #       # replace `main` with any valid ref, or tags like `v6`
   #       uses: ansible/ansible-lint-action@main

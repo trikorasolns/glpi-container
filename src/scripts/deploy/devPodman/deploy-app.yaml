@@ -72,7 +72,7 @@
     - name: "Start GLPI"
       containers.podman.podman_container:
         name: "{{ image_prefix }}_web"
-        image: "localhost/{{ image_prefix }}"
+        image: "localhost/{{ image_prefix }}_web"
         pod: "{{ pod_name }}"
         state: started
         user: 33
