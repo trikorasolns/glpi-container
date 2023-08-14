@@ -19,12 +19,25 @@
         state: created
         ports: "{{ podman_ports }}"
 
+    - name: "Create MariaDB volume"
+      containers.podman.podman_volume:
+        state: present
+        name: trikorasolns_glpi_db
+        label:
+          part-of: glpi
+          componet: database
+
     - name: "Run mariadb container"
       containers.podman.podman_container:
         name: "{{ image_prefix }}_db"
         image: "mariadb:{{ mariadb_version }}"
         pod: "{{ pod_name }}"
         state: started
+        label:
+          part-of: glpi
+          componet: database
+        volumes:
+          - trikorasolns_glpi_db:/var/lib/mysql
         env:
           MYSQL_DATABASE: "{{ mysql.database }}"
           MYSQL_USER: "{{ mysql.user }}"
@@ -51,41 +64,6 @@
         - trikorasolns_glpi_glpi_etc
       loop_control:
         loop_var: volume_to_create
-
-          # key2: value2
-        # options:
-        #   - "device=/dev/loop1"
-        #   - "type=ext4"
-
-    # - name: "Create volume folder"
-    #   ansible.builtin.file:
-    #     mode: '0777'
-    #     path: /tmp/glpi/var_lib
-    #     state: directory
-
-    # - name: "Create volume sub-folder"
-    #   ansible.builtin.file:
-    #     mode: '0777'
-    #     path: "/tmp/glpi/var_lib/{{ glpi_var_subfolder }}"
-    #     state: directory
-    #   loop:
-    #     - _cache
-    #     - _cron
-    #     - _dumps
-    #     - _graphs
-    #     - _inventories
-    #     - _locales
-    #     - _lock
-    #     - _log
-    #     - _pictures
-    #     - _plugins
-    #     - _rss
-    #     - _sessions
-    #     - _templates
-    #     - _tmp
-    #     - _uploads
-    #   loop_control:
-    #     loop_var: glpi_var_subfolder
 
     - name: Pause for 5 seconds
       ansible.builtin.pause:
