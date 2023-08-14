@@ -25,26 +25,8 @@
       loop:
         - trikorasolns_glpi_glpi_var
         - trikorasolns_glpi_glpi_etc
+        - trikorasolns_glpi_db
       loop_control:
         loop_var: volume_to_delete
 
-    # - block:
-    # - name: "Delete volume folder"
-    #   ansible.builtin.file:
-    #     path: /tmp/glpi/var_lib
-    #     state: absent
-    #   register: delete_result
-    #   # failed_when: false
-    #   ignore_errors: true
-
-    # - name: "Print delete result"
-    #   ansible.builtin.debug:
-    #     var: delete_result
-
-    # - name: "Delete volume folder SUDO"
-    #   ansible.builtin.file:
-    #     path: /tmp/glpi/var_lib
-    #     state: absent
-    #   become: true
-    #   when: delete_result.failed
 ...
