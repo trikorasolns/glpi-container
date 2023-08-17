@@ -17,43 +17,80 @@ required to deploy GLPI on a Kubernetes cluster.
 
 == Usage
 
-
 .Environment variables
 [%header,cols="2,4"]
 |===
 | Command | Description
 
-| 1: `VM_PROVIDER`
+| `GLPI_DB_HOST`
 
-[.fuchsia]#string# / [.red]#required# 
-a| Cloud provider
+[.fuchsia]#string# 
 
-Choices: 
+[.red]#required# 
 
-* `hetzner`
-* `openstack`
+a| Database host
 
-| 2: `VM_NAME`
+| `GLPI_DB_PORT`
 
-[.fuchsia]#string# / [.red]#required# 
-a| Name of the VM to connect to. 
+[.fuchsia]#string# 
 
-This is the inventory name of the VM.
+[.red]#required# 
 
-| 3: `PASSWORD_STORE_DIR`
+a| Database PORT number
 
-[.fuchsia]#string#
+| `GLPI_DB_USER_NAME`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
 a| Folder where the PASSWORDSTORE database is located
 
-*Default*: `PASSWORD_STORE_DIR` environment variable, if set. 
-If this parameter is not provided and no `PASSWORD_STORE_DIR` env
-variable is set the script will fail as it doesn't know the location
-of the passwordstore project.
+| `GLPI_DB_USER_PASSWORD`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Database user password
+
+| `GLPI_DB_NAME`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Database name
+
+| `GLPI_LANGUAGE`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Default language for the GLPI installation
+
+* `en_GB`
+* `es_ES`
+* `pt_BR`
+* ...
+
+| `GLPI_CRYPT`
+
+[.fuchsia]#string# 
+
+a| base64 encoded contents of a tar.gz file containing the `glpicrypt.key` file.
+
+This file is copied to the GLPI configuration folder. The location os this
+folder is defined using the `GLPI_CONFIG_DIR` directory which is `/etc/glpi` 
+in this installation as defined by the `downstream.php` file.
 
 |===
 
-
-# The GLPI_CRYPT environmenv variable should have this file on a base64 encoded tar gzip file.
+[NOTE]
+====
+ The GLPI_CRYPT environmenv variable should have this file on a base64 encoded tar gzip file.
+====
 
 == More information
 
