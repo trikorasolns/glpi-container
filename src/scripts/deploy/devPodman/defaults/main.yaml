@@ -9,8 +9,6 @@ podman_ports:
 
 pod_name: trikorasolns_glpi
 
-image_prefix: trikorasolns_glpi
-
 mariadb_version: 10.6
 
 mysql:

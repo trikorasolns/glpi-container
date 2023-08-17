@@ -36,7 +36,9 @@ ansible-playbook src/scripts/deploy/devPodman/deploy-app.yaml
 [NOTE]
 ====
 Preparing the environment, create the POD and instanciate the database, can 
-be accomplished by manually calling the `prepare.yaml` Ansible playbook.
+be accomplished by manually calling the `prepare-database.yaml` Ansible playbook.
+
+The `prepare-glpi.yaml` creates the volumes and deploys te `init` container.
 ====
 
 ==== Manually deploy the containers

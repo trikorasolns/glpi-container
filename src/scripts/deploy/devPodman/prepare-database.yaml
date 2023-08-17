@@ -1,0 +1,56 @@
+---
+- name: "Prepare GLPI database environment for Podman"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - ../defaults/main.yaml
+        - defaults/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+  tasks:
+    - name: "Create POD"
+      containers.podman.podman_pod:
+        name: "{{ pod_name }}"
+        state: created
+        ports: "{{ podman_ports }}"
+
+    - name: "Create MariaDB volume"
+      containers.podman.podman_volume:
+        state: present
+        name: trikorasolns_glpi_db
+        label:
+          part-of: glpi
+          componet: database
+
+    - name: "Run mariadb container"
+      containers.podman.podman_container:
+        name: "{{ image_prefix }}_db"
+        image: "mariadb:{{ mariadb_version }}"
+        pod: "{{ pod_name }}"
+        state: started
+        label:
+          part-of: glpi
+          componet: database
+        volumes:
+          - trikorasolns_glpi_db:/var/lib/mysql
+        env:
+          MYSQL_DATABASE: "{{ mysql.database }}"
+          MYSQL_USER: "{{ mysql.user }}"
+          MYSQL_PASSWORD: "{{ mysql.password }}"
+          MYSQL_ROOT_PASSWORD: "{{ mysql.root_password }}"
+
+    - name: "Wait for db container to be up and running"
+      ansible.builtin.shell: |
+        podman wait --condition running {{ image_prefix }}_db
+
+    - name: "Wait for db container to be up and running"
+      ansible.builtin.wait_for:
+        host: "127.0.0.1"
+        port: 9306
+
+...
