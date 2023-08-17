@@ -19,6 +19,15 @@ endif::[]
 
 == Build image
 
+=== Using Ansible
+
+[source,bash]
+----
+ansible-playbook src/scripts/build/build-images.yaml
+----
+
+=== Using the command line
+
 Build the GLPI init image.
 
 [source,bash]

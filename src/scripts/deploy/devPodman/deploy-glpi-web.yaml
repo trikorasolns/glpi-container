@@ -1,11 +1,5 @@
 ---
-- name: "Prepare GLPI database"
-  ansible.builtin.import_playbook: prepare-database.yaml
-
-- name: "Prepare GLPI environment"
-  ansible.builtin.import_playbook: prepare-glpi.yaml
-
-- name: "Deploy GLPI locally using Podman"
+- name: "Deploy GLPI web locally using Podman"
   hosts: "{{ target_host | default('localhost') }}"
   gather_facts: true
 
@@ -30,14 +24,4 @@
           - 33
         volumes_from: 
           - "{{ image_prefix }}_init"
-        # volumes:
-        #   - trikorasolns_glpi_glpi_var:/var/lib/glpi
-        # env:
-        #   GLPI_DB_HOST: "{{ image_prefix }}_db"
-        #   GLPI_DB_PORT: 3306
-        #   GLPI_DB_USER_NAME: "{{ mysql.user }}"
-        #   GLPI_DB_USER_PASSWORD: "{{ mysql.password }}"
-        #   GLPI_DB_NAME: "{{ mysql.database }}"
-        #   # "pt_BR", "es_ES"
-        #   GLPI_LANGUAGE: en_GB
 ...

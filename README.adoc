@@ -15,6 +15,46 @@ required to deploy GLPI on a Kubernetes cluster.
 The aim of this project is to implement the infrastructure 
 required to deploy GLPI on a Kubernetes cluster.
 
+== Usage
+
+
+.Environment variables
+[%header,cols="2,4"]
+|===
+| Command | Description
+
+| 1: `VM_PROVIDER`
+
+[.fuchsia]#string# / [.red]#required# 
+a| Cloud provider
+
+Choices: 
+
+* `hetzner`
+* `openstack`
+
+| 2: `VM_NAME`
+
+[.fuchsia]#string# / [.red]#required# 
+a| Name of the VM to connect to. 
+
+This is the inventory name of the VM.
+
+| 3: `PASSWORD_STORE_DIR`
+
+[.fuchsia]#string#
+a| Folder where the PASSWORDSTORE database is located
+
+*Default*: `PASSWORD_STORE_DIR` environment variable, if set. 
+If this parameter is not provided and no `PASSWORD_STORE_DIR` env
+variable is set the script will fail as it doesn't know the location
+of the passwordstore project.
+
+|===
+
+
+# The GLPI_CRYPT environmenv variable should have this file on a base64 encoded tar gzip file.
+
 == More information
 
 More information on the link:src/docs/index.adoc[documentation] folder.

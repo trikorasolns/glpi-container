@@ -1,0 +1,73 @@
+= Restore GLPI using Podman
+A. Costa <a dot costa at trikorasolutions dot com>
+:description: This document describes the steps to restore a GLPI database on a Podman environment.
+:icons: font
+:revdate: {docdate}
+:toc:       left
+:toc-title: Table of Contents
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+== Introduction
+
+This document describes the steps to restore a GLPI database into a running Podman GLPI environment.
+
+== Requirements
+
+* The GLPI daabase is empty
+
+== Steps
+
+Stop the Web container.
+
+[source,bash]
+----
+podman container stop trikorasolns_glpi_web
+----
+
+Copy the backup mariadb database.
+
+[source,bash]
+----
+podman cp 2023-08-07-23-00-21.glpi.backup.sql trikorasolns_glpi_db:/tmp/
+----
+
+Connect to the MariaDB database container.
+
+[source,bash]
+----
+podman exec -it trikorasolns_glpi_db /bin/bash
+----
+
+Import the database.
+
+[source,bash]
+----
+mysql -u trikorasolns_glpi -p trikorasolns_glpi < /tmp/2023-08-07-23-00-21.glpi.backup.sql
+----
+
+Restore the crypt key.
+
+`The key file "/etc/glpi//glpicrypt.key" used to encrypt/decrypt sensitive data is missing.`
+
+`/var/www/html/config/glpicrypt.key`.
+
+Start the init container so the initialization is executed.
+
+[source,bash]
+----
+podman start trikorasolns_glpi_init
+----
+
+Start the web container.
+
+[source,bash]
+----
+podman start trikorasolns_glpi_web
+----
+
