@@ -58,12 +58,11 @@
           # - /tmp/glpi/var_lib:/var/lib/glpi
         env:
           GLPI_DB_HOST: "{{ image_prefix }}_db"
-          GLPI_DB_PORT: 3306
+          GLPI_DB_PORT: "{{ mysql.db_port }}"
           GLPI_DB_USER_NAME: "{{ mysql.user }}"
           GLPI_DB_USER_PASSWORD: "{{ mysql.password }}"
           GLPI_DB_NAME: "{{ mysql.database }}"
-          # "pt_BR", "es_ES"
-          GLPI_LANGUAGE: en_GB
+          GLPI_LANGUAGE: "{{ glpi_language }}"
           GLPI_CRYPT: "{{ crypt_file_contents }}"
       register: init_container_res
       # async: 45

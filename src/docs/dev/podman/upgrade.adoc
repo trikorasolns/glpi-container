@@ -19,7 +19,8 @@ This document describes the steps to upgrade a GLPI instance on a Podman environ
 
 == Requirements
 
-The GLPI database is started and the application containers are stopped (`trikorasolns_glpi_init`, `trikorasolns_glpi_web`, ...).
+* Working GLPI installation
+* Full backup of the system
 
 == Steps
 
@@ -30,7 +31,7 @@ Stop the Web container.
 podman container stop trikorasolns_glpi_web
 ----
 
-Copy the backup mariadb database.
+Copy the backup mariadb database to the mariadb container.
 
 [source,bash]
 ----
@@ -51,11 +52,18 @@ Import the database.
 mysql -u trikorasolns_glpi -p trikorasolns_glpi < /tmp/2023-08-07-23-00-21.glpi.backup.sql
 ----
 
-Start the init container so the updatedb is executed.
+If the GLPI init container is not installed execute it.
 
 [source,bash]
 ----
-ansible-playbook src/scripts/deploy/devPodman/prepare-glpi.yaml
+ansible-playbook src/scripts/deploy/devPodman/deploy-glpi-init.yaml
+----
+
+Otherwise start the init container so the updatedb is executed.
+
+[source,bash]
+----
+podman start trikorasolns_glpi_web 
 ----
 
 The result should be the something like the following messages, depending on the version.
