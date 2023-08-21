@@ -1,0 +1,4 @@
+exclude: 
+  - src/deployment
+  - src/main
+  - src/scripts
