@@ -9,12 +9,17 @@ podman_ports:
 
 pod_name: trikorasolns_glpi
 
-image_prefix: trikorasolns_glpi
-
 mariadb_version: 10.6
 
+# tag::mysqlVars[]
 mysql:
   database: trikorasolns_glpi
+  db_port: 3306
   user: trikorasolns_glpi
   password: trikorasolns_glpi
   root_password: trikorasolns_glpi
+# end::mysqlVars[]
+
+# GLPI
+# "pt_BR", "es_ES"
+glpi_language: en_GB

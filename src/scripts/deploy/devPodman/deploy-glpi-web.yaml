@@ -1,18 +1,12 @@
 ---
-- name: "Prepare GLPI database"
-  ansible.builtin.import_playbook: prepare-database.yaml
-
-- name: "Prepare GLPI environment"
-  ansible.builtin.import_playbook: deploy-glpi-init.yaml
-
-- name: "Deploy GLPI locally using Podman"
+- name: "Deploy GLPI web locally using Podman"
   hosts: "{{ target_host | default('localhost') }}"
   gather_facts: true
 
   pre_tasks:
     - name: "Include project default vars"
       ansible.builtin.include_vars: "{{ file_to_include }}"
-      loop: 
+      loop:
         - ../../defaults/main.yaml
         - defaults/main.yaml
       loop_control:
@@ -30,5 +24,4 @@
           - 33
         volumes_from: 
           - "{{ image_prefix }}_init"
-
 ...

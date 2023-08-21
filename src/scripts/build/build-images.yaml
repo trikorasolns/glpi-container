@@ -1,0 +1,34 @@
+---
+- name: "Build images"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - ../defaults/main.yaml
+        - defaults/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+  tasks:
+    - name: "Build init image"
+      ansible.builtin.shell: |
+        buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
+      args:
+        chdir: "{{ chdir_ref }}"
+
+    - name: "Build web image"
+      ansible.builtin.shell: |
+        buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
+      args:
+        chdir: "{{ chdir_ref }}"
+
+    # - name: "Build cron image"
+    #   ansible.builtin.shell: |
+    #     buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
+    #     buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
+    #   args:
+    #     chdir: "{{ chdir_ref }}"
+...

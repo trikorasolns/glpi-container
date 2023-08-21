@@ -1,5 +1,5 @@
 ---
-- name: "Undeploy local GLPI Podman POD"
+- name: "Undeploy local GLPI Podman deployment"
   hosts: "{{ target_host | default('localhost') }}"
   gather_facts: true
 
@@ -7,8 +7,8 @@
     - name: "Include project default vars"
       ansible.builtin.include_vars: "{{ file_to_include }}"
       loop:
+        - ../defaults/main.yaml
         - defaults/main.yaml
-#        - vars/main.yaml
       loop_control:
         loop_var: file_to_include
 

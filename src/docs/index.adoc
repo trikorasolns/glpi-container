@@ -21,9 +21,17 @@ endif::[]
 
 link:build.adoc[Build the Container Image]
 
-link:deployPodman.adoc[Deploy the image locally using Podman]
+=== Podman
 
-link:deployKind.adoc[Deploy the image locally using KIND]
+link:podman/deploy.adoc[Deploy the image locally using Podman]
+
+link:podman/restore.adoc[Restore a GLPI database]
+
+link:podman/upgrade.adoc[Upgrade a GLPI instance]
+
+=== KinD
+
+TBD
 
 == Operational Guides
 

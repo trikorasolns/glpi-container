@@ -17,7 +17,7 @@ YELLOW='\033[0;33m'
 log_message() {
     VERBOSITY_LEVEL=$1
     MESSAGE="${@:2}"
-    if [ ${LOGGING_VERBOSITY} -ge ${VERBOSITY_LEVEL} ]; then
+    if [[ ${LOGGING_VERBOSITY} -ge ${VERBOSITY_LEVEL} ]]; then
         echo -e "${MESSAGE}"
     fi
 }
@@ -25,7 +25,7 @@ log_message() {
 log_message_nonl() {
     VERBOSITY_LEVEL=$1
     MESSAGE="${@:2}"
-    if [ "${LOGGING_VERBOSITY}" -ge "${VERBOSITY_LEVEL}" ]; then
+    if [[ "${LOGGING_VERBOSITY}" -ge "${VERBOSITY_LEVEL}" ]]; then
         echo -ne "${MESSAGE}\033[0K\r"
     fi
 }
@@ -103,6 +103,8 @@ install_db() {
 update_db() {
     note 0 "update_db()"
     php bin/console db:update --no-interaction --no-telemetry
+    php bin/console migration:utf8mb4
+    php bin/console migration:unsigned_keys
 }
 
 validate_environment() {
@@ -134,7 +136,30 @@ validate_environment() {
     succeeded 0 "validate_environment()"
 }
 
+# Recover the glpicrypt.key file
+recover_glpi_key() {
+    note 0 "recover_glpi_key()"
+    # The GLPI_CRYPT environmenv variable should have this file on a base64 encoded tar gzip file.
+    note 0 "GLPI_CRYPT: ${GLPI_CRYPT}:${#GLPI_CRYPT}"
+    if [ -v GLPI_CRYPT ] && [ ${#GLPI_CRYPT} > 0 ] ; then
+        note_start_task 0 "Extract provided GLPI crypt file to /etc/glpi"
+        # note 0 "GLPI_CRYPT defined, extracting to /etc/glpi"
+        echo "${GLPI_CRYPT}" | base64 -d > /tmp/glpicrypt.tgz
+        pushd /tmp
+        tar xzvf /tmp/glpicrypt.tgz
+        # GLPI_CONFIG_DIR variable from downstream.php
+        mv glpicrypt.key /etc/glpi/
+        popd
+        success 0 "Extract provided GLPI crypt file to /etc/glpi"
+        ls -l /etc/glpi/
+    else
+        note 0 "No GLPI crypt file provided."
+    fi
+}
+
 ###### Execution
+
+php bin/console system:check_requirements
 
 # Check installation
 # php bin/console db:check_schema_integrity
@@ -142,14 +167,17 @@ validate_environment() {
 #     validate_environment
 #     generate_db_configuration
 # end
+
+recover_glpi_key
+
 if [ ! -v LOGGING_VERBOSITY ]; then
     LOGGING_VERBOSITY=0
 fi
 note 0 "whoami: $(whoami)"
 note 0 "groups: $(groups)"
 
-ls -l /var/lib
-ls -l /var/lib/glpi
+# ls -l /var/lib
+# ls -l /var/lib/glpi
 note 0 "GLPI_DB_HOST: ${GLPI_DB_HOST}"
 note 0 "GLPI_DB_PORT: ${GLPI_DB_PORT}"
 note 0 "GLPI_DB_USER_NAME: ${GLPI_DB_USER_NAME}"
@@ -161,6 +189,7 @@ cat /etc/glpi/config_db.php
 
 validate_environment
 generate_db_configuration
+
 cat /etc/glpi/config_db.php
 note 0 'Check schema integrity'
 php bin/console db:check_schema_integrity

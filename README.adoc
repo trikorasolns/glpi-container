@@ -15,6 +15,83 @@ required to deploy GLPI on a Kubernetes cluster.
 The aim of this project is to implement the infrastructure 
 required to deploy GLPI on a Kubernetes cluster.
 
+== Usage
+
+.Environment variables
+[%header,cols="2,4"]
+|===
+| Command | Description
+
+| `GLPI_DB_HOST`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Database host
+
+| `GLPI_DB_PORT`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Database PORT number
+
+| `GLPI_DB_USER_NAME`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Folder where the PASSWORDSTORE database is located
+
+| `GLPI_DB_USER_PASSWORD`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Database user password
+
+| `GLPI_DB_NAME`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Database name
+
+| `GLPI_LANGUAGE`
+
+[.fuchsia]#string# 
+
+[.red]#required# 
+
+a| Default language for the GLPI installation
+
+* `en_GB`
+* `es_ES`
+* `pt_BR`
+* ...
+
+| `GLPI_CRYPT`
+
+[.fuchsia]#string# 
+
+a| base64 encoded contents of a tar.gz file containing the `glpicrypt.key` file.
+
+This file is copied to the GLPI configuration folder. The location os this
+folder is defined using the `GLPI_CONFIG_DIR` directory which is `/etc/glpi` 
+in this installation as defined by the `downstream.php` file.
+
+|===
+
+[NOTE]
+====
+ The GLPI_CRYPT environmenv variable should have this file on a base64 encoded tar gzip file.
+====
+
 == More information
 
 More information on the link:src/docs/index.adoc[documentation] folder.
