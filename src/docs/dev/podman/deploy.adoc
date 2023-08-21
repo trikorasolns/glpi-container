@@ -1,6 +1,6 @@
 = Deploy GLPI using Podman
 A. Costa <a dot costa at trikorasolutions dot com>
-:description: This document describes the steps to deploy a development environment using Podman.
+:description: This document describes the steps to deploy a new development environment using Podman.
 :icons: font
 :revdate: {docdate}
 :toc:       left
@@ -15,8 +15,8 @@ endif::[]
 
 == Introduction
 
-This document describes the steps to deploy the GLPI container image using
-link:https://podman.io/[Podman] on a workstation (localhost).
+This document describes the steps to deploy the a new GLPI environment using
+link:https://podman.io/[Podman].
 
 == Requirements
 
@@ -26,60 +26,112 @@ Requires the container image to be built. Check link:build.adoc[The build docume
 
 == Deploy the application
 
-=== Locally on Podman
+To deploy GLPI locally using Podman execute the ansible playbooks provided.
+
+=== Instanciate a MariaDB database
+
+.Environment variables
+[%header,cols="2,4"]
+|===
+| Variable | Description
+
+| `mariadb_version`
+
+[.fuchsia]#string# 
+
+a| MariaDB database version.
+
+_Default:_ `10.6`
+
+| `image_prefix`
+
+[.fuchsia]#string# 
+
+a| Prefix applied to the container images.
+
+_Default:_  `trikorasolns_glpi`
+
+| `pod_name`
+
+[.fuchsia]#string# 
+
+a| Name to be given to the Podman POD
+
+_Default:_ `trikorasolns_glpi`
+|===
+
+
+.mysql dictionary
+[%header,cols="2,4"]
+|===
+| Variable | Description
+
+| `mysql.database`
+
+[.fuchsia]#string# 
+
+a| Database name
+
+_Default:_ `trikorasolns_glpi`
+
+| `mysql.password`
+
+[.fuchsia]#string# 
+
+a| Database user password
+
+_Default:_ `trikorasolns_glpi`
+
+| `mysql.root_password`
+
+[.fuchsia]#string# 
+
+a| Database root password
+
+_Default:_ `trikorasolns_glpi`
+
+| `mysql.user`
+
+[.fuchsia]#string# 
+
+a| Database user
+
+_Default:_ `trikorasolns_glpi`
+
+|===
 
 [source,bash]
 ----
-ansible-playbook src/scripts/deploy/devPodman/deploy-app.yaml
+ansible-playbook src/scripts/deploy/devPodman/prepare-database.yaml
 ----
 
-[NOTE]
-====
-Preparing the environment, create the POD and instanciate the database, can 
-be accomplished by manually calling the `prepare-database.yaml` Ansible playbook.
-
-The `prepare-glpi.yaml` creates the volumes and deploys te `init` container.
-====
-
-==== Manually deploy the containers
-
-      containers.podman.podman_container:
-        name: "{{ image_prefix }}_init"
-        image: "localhost/{{ image_prefix }}"
-        pod: "{{ pod_name }}"
-        state: started
-        command: /opt/glpi/glpi-install.sh
-        env:
-          GLPI_DB_HOST: "{{ image_prefix }}_db"
-          GLPI_DB_PORT: 3306
-          GLPI_DB_USER_NAME: "{{ mysql.user }}"
-          GLPI_DB_USER_PASSWORD: "{{ mysql.password }}"
-          GLPI_DB_NAME: "{{ mysql.database }}"
-          # "pt_BR", "es_ES"
-          GLPI_LANGUAGE: en_GB
+=== Deploy the init container
 
 [source,bash]
 ----
-podman run --pod trikorasolns_glpi --name trikorasolns_glpi_init \
-  -e GLPI_DB_HOST="trikorasolns_glpi_db" \
-  -e GLPI_DB_PORT=3306 \
-  -e GLPI_DB_USER_NAME="trikorasolns_glpi" \
-  -e GLPI_DB_USER_PASSWORD="trikorasolns_glpi" \
-  -e GLPI_DB_NAME="trikorasolns_glpi" \
-  -e GLPI_LANGUAGE=en_GB \
-  -v /tmp/glpi/var_lib:/var/lib/glpi:Z \
-  -u 33:33 \
-  localhost/trikorasolns_glpi /opt/glpi/glpi-install.sh
+ansible-playbook src/scripts/deploy/devPodman/deploy-glpi-init.yaml
 ----
 
+=== Deploy the GLPI Web Application container
 
-=== Access the application
+[source,bash]
+----
+ansible-playbook src/scripts/deploy/devPodman/deploy-glpi-web.yaml
+----
+
+=== Deploy the cron container
+
+TBD.
+
+== Access the application
+
+=== Web Application
 
 Access the application through the following URL.
 
 http://localhost:9380/glpi
 
-Container console
+=== GLPI Console
 
 [source,bash]
 ----

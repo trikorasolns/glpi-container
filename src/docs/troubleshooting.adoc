@@ -122,3 +122,19 @@ The email password has been cleared.
 === Solution
 
 Introduce the email password in the `SMTP password (optional)` field of the `Setup > Notifications > Email followups configuration` screen.
+
+== `The key file "/etc/glpi//glpicrypt.key" used to encrypt/decrypt sensitive data is missing.`
+
+=== Problem
+
+The update process fail to execute after importing a database from another system.
+
+=== Cause
+
+The original GLPI crypt file is missing on the new installation.
+
+=== Solution
+
+Restore the `glpicrypt.key` file.
+
+

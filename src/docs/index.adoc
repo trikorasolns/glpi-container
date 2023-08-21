@@ -27,7 +27,11 @@ link:podman/deploy.adoc[Deploy the image locally using Podman]
 
 link:podman/restore.adoc[Restore a GLPI database]
 
-link:deployKind.adoc[Deploy the image locally using KIND]
+link:podman/upgrade.adoc[Upgrade a GLPI instance]
+
+=== KinD
+
+TBD
 
 == Operational Guides
 
