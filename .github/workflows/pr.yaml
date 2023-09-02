@@ -62,7 +62,7 @@ jobs:
         with:
           image: ${{ steps.build-init-image.outputs.image }}
           tags: ${{ steps.build-init-image.outputs.tags }}
-          registry: http://localhost:5000/trikorasolns/glpi-container/glpi-container-init:latest
+          registry: localhost:5000/glpi-container/glpi-container-init:latest
           # username: quay-user
           # password: ${{ secrets.REGISTRY_PASSWORD }}
 
