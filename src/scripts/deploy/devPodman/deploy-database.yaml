@@ -7,8 +7,7 @@
     - name: "Include project default vars"
       ansible.builtin.include_vars: "{{ file_to_include }}"
       loop:
-        - ../defaults/main.yaml
-        - defaults/main.yaml
+        - vars/main.yaml
       loop_control:
         loop_var: file_to_include
 
@@ -29,7 +28,7 @@
 
     - name: "Run mariadb container"
       containers.podman.podman_container:
-        name: "{{ image_prefix }}_db"
+        name: "{{ pod_name }}_db"
         image: "mariadb:{{ mariadb_version }}"
         pod: "{{ pod_name }}"
         state: started
@@ -46,7 +45,7 @@
 
     - name: "Wait for db container to be up and running"
       ansible.builtin.shell: |
-        podman wait --condition running {{ image_prefix }}_db
+        podman wait --condition running {{ pod_name }}_db
 
     - name: "Wait for db container to be up and running"
       ansible.builtin.wait_for:

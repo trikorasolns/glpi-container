@@ -1,0 +1,52 @@
+---
+- name: "Deploy KinD cluster"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+  tasks:
+    - name: Check if local container registry is deployed
+      ansible.builtin.shell: |
+        docker container ls --filter name='{{ container_registry_name }}' --format json
+      register: container_reg_info
+
+    - name: "Install Container Registry"
+      ansible.builtin.shell: |
+        curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | \
+        bash -s install --registry-name "{{ container_registry_name }}" --registry-port "{{ container_registry_name }}"
+      when: (container_reg_info.stdout | from_json).Names is undefined
+
+    - name: Check if cluster exists
+      ansible.builtin.shell: |
+        kind get clusters | grep {{ k8s_namespace }}
+      register: get_cluster
+      ignore_errors: true
+
+    - name: "Install kind cluster"
+      ansible.builtin.shell: |
+        curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | \
+          bash -s install --cluster-name {{ k8s_namespace }}  \
+          --port-map '{{ kind_cluster_ports }}' --ingress-ports "{{ ingress_ports }}" \
+          --registry-name "{{ registry_name }}" --registry-port "{{ registry_port }}"
+      when: get_cluster.rc > 0
+
+    - name: "Install required packages"
+      ansible.builtin.package:
+        name: "{{ package_item }}"
+        state: present
+      become: true
+      loop: "{{ required_packages }}"
+      loop_control:
+        loop_var: package_item
+    # TODO
+#    - name: "Install python packages from requirements"
+#      ansible.builtin.shell: "ansible-galaxy install -r requirements.yml"
+...

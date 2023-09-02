@@ -1,5 +1,5 @@
 ---
-- name: "Build images"
+- name: "Tag images"
   hosts: "{{ target_host | default('localhost') }}"
   gather_facts: true
 
@@ -13,27 +13,22 @@
         loop_var: file_to_include
 
   tasks:
-    - name: "Build the CORE image"
-      ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_core -f src/main/core/Dockerfile
-      args:
-        chdir: "{{ chdir_ref }}"
-
-    - name: "Build the init container image"
+    - name: "Build init image"
       ansible.builtin.shell: |
         buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
       args:
         chdir: "{{ chdir_ref }}"
 
-    - name: "Build the web application image"
+    - name: "Build web image"
       ansible.builtin.shell: |
         buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
       args:
         chdir: "{{ chdir_ref }}"
 
-    - name: "Build the cron image"
-      ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_cron -f src/main/cron/Dockerfile
-      args:
-        chdir: "{{ chdir_ref }}"
+    # - name: "Build cron image"
+    #   ansible.builtin.shell: |
+    #     buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
+    #     buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
+    #   args:
+    #     chdir: "{{ chdir_ref }}"
 ...

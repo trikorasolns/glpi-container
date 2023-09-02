@@ -102,7 +102,7 @@ _Default:_ `trikorasolns_glpi`
 
 [source,bash]
 ----
-ansible-playbook src/scripts/deploy/devPodman/prepare-database.yaml
+ansible-playbook src/scripts/deploy/devPodman/deploy-database.yaml
 ----
 
 === Deploy the init container
@@ -112,12 +112,32 @@ ansible-playbook src/scripts/deploy/devPodman/prepare-database.yaml
 ansible-playbook src/scripts/deploy/devPodman/deploy-glpi-init.yaml
 ----
 
+[NOTE]
+====
+To check the logs of the init container.
+
+[source,bash]
+----
+podman logs -f trikorasolns_glpi_init
+----
+====
+
 === Deploy the GLPI Web Application container
 
 [source,bash]
 ----
 ansible-playbook src/scripts/deploy/devPodman/deploy-glpi-web.yaml
 ----
+
+[NOTE]
+====
+To check the logs of the web container.
+
+[source,bash]
+----
+podman logs -f trikorasolns_glpi_web
+----
+====
 
 === Deploy the cron container
 
@@ -129,7 +149,7 @@ TBD.
 
 Access the application through the following URL.
 
-http://localhost:9380/glpi
+http://localhost:9380/
 
 === GLPI Console
 

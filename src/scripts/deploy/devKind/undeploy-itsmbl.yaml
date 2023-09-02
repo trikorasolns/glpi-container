@@ -1,0 +1,61 @@
+---
+- name: "Deploy Trikora Workplace Manager BL"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+    - name: Check the Trikora Worplace Manager BL project folder variable is defined
+      assert:
+        that:
+          - "itwm_bl_project_folder is defined"
+        msg:
+          - "Please specify the Trikora Worplace Manager BL project folder variable ('itwm_bl_project_folder')"
+
+  tasks:
+    - name: Check if a previous deployment exists on k8s
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Deployment
+        name: itwm-bl
+        namespace: "{{ k8s_namespace }}"
+      register: bl_deployment
+
+    - name: "Debug bl_deployment"
+      debug:
+        msg: "bl_deployment: {{ bl_deployment }}"
+        verbosity: 2
+
+    - name: Check if Quarkus deployment file exists
+      ansible.builtin.stat:
+        path: "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+      register: k8s_deployment_file
+
+    - name: "Debug bl_deployment"
+      debug:
+        msg: "k8s_deployment_file: {{ k8s_deployment_file }}"
+        verbosity: 2
+
+    - name: "Undeploy BL using kubernetes.yaml"
+      kubernetes.core.k8s:
+        state: absent
+        src: build/kubernetes/kubernetes.yml
+      when: (bl_deployment.resources | length > 0) and k8s_deployment_file.stat.exists
+
+    - name: "Undeploy BL deployment using kubectl"
+      kubernetes.core.k8s:
+        state: absent
+        kind: Deployment
+        name: itwm-bl
+        namespace: "{{ k8s_namespace }}"
+      when: (bl_deployment.resources | length > 0) and k8s_deployment_file.stat.exists
+
+...
+# ansible-playbook src/main/kind/ansible/deploy-itsmbl.yaml -e itwm_bl_project_folder=$(pwd)

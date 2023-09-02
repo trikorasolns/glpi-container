@@ -1,0 +1,51 @@
+---
+- name: "Deploy MariaDB"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+    - name: Check the Trikora Helm Chart folder variable is defined
+      assert:
+        that:
+          - "trikora_helm_project_dir is defined"
+        msg:
+          - "Please specify the Trikora Helm Chart folder variable ('trikora_helm_project_dir')"
+
+  tasks:
+    - name: "Create a k8s namespace"
+      kubernetes.core.k8s:
+        name: "{{ k8s_namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: "Template mariadb deployment"
+      ansible.builtin.template:
+          src: "../helm-charts/helm-mariadb-values.yaml.j2"
+          dest: "/tmp/helm-mariadb-values.yaml"
+          mode: '0644'
+
+    - name: Create a Deployment by reading the definition from a local file
+      kubernetes.core.helm:
+        name: mariadb
+        chart_ref: "{{ trikora_helm_project_dir }}/mariadb"
+        release_namespace: "{{ k8s_namespace }}"
+        wait: true
+        replace: true
+        values_files:
+          - /tmp/helm-mariadb-values.yaml
+      register: mariadb_helm_res
+
+    - name: "Print mariadb Helm output"
+      debug:
+        msg: "{{ mariadb_helm_res }}"
+        verbosity: 0
+...

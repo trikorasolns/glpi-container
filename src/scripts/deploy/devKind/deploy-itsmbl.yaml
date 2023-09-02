@@ -1,0 +1,141 @@
+---
+- name: "Deploy Trikora Workplace Manager BL"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+    - name: Check the Trikora Worplace Manager BL project folder variable is defined
+      assert:
+        that:
+          - "itwm_bl_project_folder is defined"
+        msg:
+          - "Please specify the Trikora Worplace Manager BL project folder variable ('itwm_bl_project_folder')"
+
+    - name: Check if Quarkus deployment file exists
+      ansible.builtin.stat:
+        path: "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+      register: k8s_deployment_file
+
+    - name: "Debug bl_deployment"
+      debug:
+        msg: "k8s_deployment_file: {{ k8s_deployment_file }}"
+        verbosity: 2
+
+  tasks:
+    - name: Check if a previous deployment exists on k8s
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Deployment
+        name: itwm-bl
+        namespace: "{{ k8s_namespace }}"
+      register: bl_deployment
+
+    - name: "Debug bl_deployment"
+      debug:
+        msg: "bl_deployment: {{ bl_deployment }}"
+        verbosity: 2
+
+    - name: "Create init container"
+      ansible.builtin.shell: |
+        sdk env
+        ./gradlew clean cleanBuild build \
+          -x test -x checkstyleMain -x checkstyleTest -x checkstyleNativeTest -x pmdMain -x pmdTest \
+          -Dquarkus.container-image.additional-tags=latest \
+          -Dquarkus.container-image.build=true \
+          -Dquarkus.container-image.name="itwm-bl-demo" \
+          -Dquarkus.container-image.push=true \
+          -Dquarkus.container-image.registry="{{ container_registry_name }}:{{ container_registry_port }}" \
+          -Dquarkus.kubernetes.deploy=false \
+          -Dquarkus.docker.dockerfile-jvm-path="src/main/docker/Dockerfile-demo.jvm" \
+          --stacktrace
+      args:
+        chdir: "{{ itwm_bl_project_folder }}"
+      when: skip_image_build is undefined or not (skip_image_build | bool) or not k8s_deployment_file.stat.exists
+
+    - name: "Create application container"
+      ansible.builtin.shell: |
+        sdk env
+        ./gradlew clean cleanBuild build \
+          -x test -x checkstyleMain -x checkstyleTest -x checkstyleNativeTest -x pmdMain -x pmdTest \
+          -Dquarkus.container-image.additional-tags=latest \
+          -Dquarkus.container-image.build=true \
+          -Dquarkus.container-image.push=true \
+          -Dquarkus.container-image.registry="{{ container_registry_name }}:{{ container_registry_port }}" \
+          -Dquarkus.kubernetes.deploy=false
+      args:
+        chdir: "{{ itwm_bl_project_folder }}"
+      when: skip_image_build is undefined or not (skip_image_build | bool) or not k8s_deployment_file.stat.exists
+
+    - name: "Change the imagePullPolicy to Always"
+      ansible.builtin.replace:
+        regexp: "imagePullPolicy: IfNotPresent"
+        replace: "imagePullPolicy: Always"
+        path: "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+      when: skip_image_build is undefined or not (skip_image_build | bool)
+
+    # - name: "Fix the container registry location"
+    #   ansible.builtin.lineinfile:
+    #     regexp: '5000'
+    #     line: '\1'
+    #     backrefs: yes
+    #     path: "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+    #     state: present
+
+    - name: "Fix the container registry location"
+      ansible.builtin.replace:
+        regexp: 'localhost:5000'
+        replace: "{{ container_registry_name }}:{{ container_registry_port }}"
+        path: "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+      when: skip_image_build is undefined or not (skip_image_build | bool)
+
+    - name: "Template the BL deployment"
+      ansible.builtin.template:
+        src: "{{ itwm_bl_project_folder }}/src/main/kind/app/10-configmap.yaml.j2"
+        dest: "/tmp/itwm-bl-10-configmap.yaml"
+        mode: '0644'
+
+    - name: "Undeploy BL using kubernetes.yaml"
+      kubernetes.core.k8s:
+        state: absent
+        src: "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+      when: (bl_deployment.resources | length > 0) and k8s_deployment_file.stat.exists
+
+    - name: "Undeploy BL deployment using kubectl"
+      kubernetes.core.k8s:
+        state: absent
+        kind: Deployment
+        name: itwm-bl
+        namespace: "{{ k8s_namespace }}"
+      when: (bl_deployment.resources | length > 0) and not k8s_deployment_file.stat.exists
+
+    - name: "Deploy BL"
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ bl_k8s_yaml_file }}"
+      loop:
+#        - "{{ itwm_bl_project_folder }}/src/main/kind/app/10-configmap.yaml"
+        - "/tmp/itwm-bl-10-configmap.yaml"
+        - "{{ itwm_bl_project_folder }}/src/main/kind/app/15-secret.yaml"
+        - "{{ itwm_bl_project_folder }}/build/kubernetes/kubernetes.yml"
+      loop_control:
+        loop_var: bl_k8s_yaml_file
+
+    - name: "Complementary information"
+      debug:
+        msg:
+          - "Check the load-demo container log using the following command: "
+          - "    kubectl -n twm logs -f -c load-demo $(kubectl get pods -n twm | grep itwm-bl |  awk '{print $1}')"
+          - " "
+          - "Check the pod log using the following command: "
+          - "    kubectl -n twm logs -f $(kubectl get pods -n twm | grep itwm-bl |  awk '{print $1}')"
+        verbosity: 0
+...
+# ansible-playbook src/main/kind/ansible/deploy-itsmbl.yaml -e itwm_bl_project_folder=$(pwd)
