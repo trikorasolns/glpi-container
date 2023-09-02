@@ -26,6 +26,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # needed for progressive mode to work
+      - name: Build core Image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: trikorasolns_glpi_core
+          containerfiles: |
+            src/main/core/Dockerfile
       - name: Build init Image
         uses: redhat-actions/buildah-build@v2
         with:
@@ -39,6 +45,12 @@ jobs:
           image: trikorasolns_glpi_web
           containerfiles: |
             src/main/web/Dockerfile
+      - name: Build cron Image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: trikorasolns_glpi_cron
+          containerfiles: |
+            src/main/cron/Dockerfile
           # tags: v1
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
