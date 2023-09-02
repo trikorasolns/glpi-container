@@ -8,6 +8,10 @@ jobs:
     name: Build the image
     runs-on: ubuntu-latest
     services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
       mariadb:
         image: mariadb:"10.10.2"
         ports:
@@ -27,18 +31,19 @@ jobs:
         with:
           fetch-depth: 0 # needed for progressive mode to work
       - name: Build core Image
+        id: build-core-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: trikorasolns_glpi_core
           containerfiles: |
             src/main/core/Dockerfile
       - name: Build init Image
+        id: build-init-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: trikorasolns_glpi_init
           containerfiles: |
             src/main/init/Dockerfile
-          # tags: latest
       - name: Build web Image
         uses: redhat-actions/buildah-build@v2
         with:
@@ -51,7 +56,16 @@ jobs:
           image: trikorasolns_glpi_cron
           containerfiles: |
             src/main/cron/Dockerfile
-          # tags: v1
+      - name: Push to local registry
+        id: push-to-quay
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-init-image.outputs.image }}
+          tags: ${{ steps.build-init-image.outputs.tags }}
+          registry: localhost:5000/trikorasolns/glpi-container/glpi-container-init:latest
+          # username: quay-user
+          # password: ${{ secrets.REGISTRY_PASSWORD }}
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
       - name: Install dependencies
