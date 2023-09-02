@@ -59,11 +59,11 @@ jobs:
       - name: Add 
         run: |
           cat > /etc/containers/registries.conf.d/localhost.conf <<EOF
-[[registry]]
-location = "localhost:5000"
-insecure = true
-
-EOF
+          [[registry]]
+          location = "localhost:5000"
+          insecure = true
+          EOF
+          cat /etc/containers/registries.conf.d/localhost.conf
       - name: Push to local registry
         id: push-to-quay
         uses: redhat-actions/push-to-registry@v2
