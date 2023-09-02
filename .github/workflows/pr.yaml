@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mariadb:
-        image: mariadb:"10.6"
+        image: mariadb:"10.10.2"
         ports:
           - 3306
         env:
@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11"]
-        # mariadb-version: ["10.6"]
+        # mariadb-version: ["10.10.2"]
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
       - uses: actions/checkout@v3
@@ -59,6 +59,8 @@ jobs:
           python -m pip install --upgrade pip
           # pip install ruff pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      # - name: Create k8s Kind Cluster
+      #   uses: helm/kind-action@v1.5.0
       # - uses: shogo82148/actions-setup-mysql@v1
       #   with:
       #     distribution: "mariadb"
