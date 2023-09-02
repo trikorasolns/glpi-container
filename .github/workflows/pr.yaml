@@ -56,24 +56,24 @@ jobs:
           image: trikorasolns_glpi_cron
           containerfiles: |
             src/main/cron/Dockerfile
-      - name: Add 
-        run: |
-          cat > /etc/containers/registries.conf.d/localhost.conf <<EOF
-          [[registry]]
-          location = "localhost:5000"
-          insecure = true
-          EOF
-          cat /etc/containers/registries.conf.d/localhost.conf
-      - name: Push to local registry
-        id: push-to-quay
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-init-image.outputs.image }}
-          tags: ${{ steps.build-init-image.outputs.tags }}
-          registry: localhost:5000/glpi-container
-      #     # registry: localhost:5000/name/app:latest
-      #     # username: quay-user
-      #     # password: ${{ secrets.REGISTRY_PASSWORD }}
+      # - name: Add 
+      #   run: |
+      #     cat > /etc/containers/registries.conf.d/localhost.conf <<EOF
+      #     [[registry]]
+      #     location = "localhost:5000"
+      #     insecure = true
+      #     EOF
+      #     cat /etc/containers/registries.conf.d/localhost.conf
+      # - name: Push to local registry
+      #   id: push-to-quay
+      #   uses: redhat-actions/push-to-registry@v2
+      #   with:
+      #     image: ${{ steps.build-init-image.outputs.image }}
+      #     tags: ${{ steps.build-init-image.outputs.tags }}
+      #     registry: localhost:5000/glpi-container
+      # #     # registry: localhost:5000/name/app:latest
+      # #     # username: quay-user
+      # #     # password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
       - name: Install dependencies
