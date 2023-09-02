@@ -1,0 +1,27 @@
+container_registry_name: kind-registry.local
+container_registry_port: 5000
+deploy_container_registry: false
+deploy_kind_cluster: false
+
+k8s_namespace: glpi
+
+ingress_ports: 9481:9482
+kind_cluster_ports: 9406:3306,9400:3000,9480:8080,9483:8443
+
+registry_name: kind-registry.local
+registry_port: 5000
+
+mariadb_version: 10.6
+
+# tag::mysqlVars[]
+mysql:
+  database: trikorasolns_glpi
+  db_port: 3306
+  user: trikorasolns_glpi
+  password: trikorasolns_glpi
+  root_password: trikorasolns_glpi
+# end::mysqlVars[]
+
+# GLPI
+# "pt_BR", "es_ES"
+glpi_language: en_GB

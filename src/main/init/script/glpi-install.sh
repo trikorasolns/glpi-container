@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+SCRIPT_VERSION=0.0.1
 
 NC='\033[0m' # No Color
 COLOR_RESET="\033[0m" # Reset color
@@ -70,7 +71,7 @@ error() {
     log_message 0 "${RED}\xE2\x9D\x8C${NC} $1"
 }
 
-generate_db_configuration() {
+generate_configuration() {
     note_start_task 0 "generate_db_configuration()"
     cat <<EOF > /etc/glpi/config_db.php
 <?php
@@ -85,12 +86,38 @@ class DB extends DBmysql {
    public \$allow_signed_keys = false;
 }
 EOF
-  succeeded 0 "generate_db_configuration()"
+    succeeded 0 "generate_db_configuration()"
+    cat /etc/glpi/local_define.php
+
+    note_start_task 0 "generate_local_define()"
+    cat <<EOF > /etc/glpi/local_define.php
+<?php
+define('GLPI_FILES_DIR', '/var/lib/glpi');
+define('GLPI_DOC_DIR',        GLPI_FILES_DIR);
+define('GLPI_CRON_DIR',       GLPI_FILES_DIR . '/_cron');
+define('GLPI_DUMP_DIR',       GLPI_FILES_DIR . '/_dumps');
+define('GLPI_GRAPH_DIR',      GLPI_FILES_DIR . '/_graphs');
+define('GLPI_LOCK_DIR',       GLPI_FILES_DIR . '/_lock');
+define('GLPI_PICTURE_DIR',    GLPI_FILES_DIR . '/_pictures');
+define('GLPI_PLUGIN_DOC_DIR', GLPI_FILES_DIR . '/_plugins');
+define('GLPI_RSS_DIR',        GLPI_FILES_DIR . '/_rss');
+define('GLPI_SESSION_DIR',    GLPI_FILES_DIR . '/_sessions');
+define('GLPI_TMP_DIR',        GLPI_FILES_DIR . '/_tmp');
+define('GLPI_UPLOAD_DIR',     GLPI_FILES_DIR . '/_uploads');
+define('GLPI_CACHE_DIR',      GLPI_FILES_DIR . '/_cache');
+
+define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+    succeeded 0 "generate_local_define()"
+    note 0 "print local_define()"
+    cat /etc/glpi/local_define.php
+    note 0 "/print local_define()"
 }
 
 install_fs() {
     note 0 "install_fs()"
     mkdir /var/lib/glpi/_cache/templates
+    chown 33:33 -R /var/lib/glpi/_cache
 }
 
 install_db() {
@@ -142,8 +169,7 @@ recover_glpi_key() {
     # The GLPI_CRYPT environmenv variable should have this file on a base64 encoded tar gzip file.
     note 0 "GLPI_CRYPT: ${GLPI_CRYPT}:${#GLPI_CRYPT}"
     if [ -v GLPI_CRYPT ] && [ ${#GLPI_CRYPT} > 0 ] ; then
-        note_start_task 0 "Extract provided GLPI crypt file to /etc/glpi"
-        # note 0 "GLPI_CRYPT defined, extracting to /etc/glpi"
+        note 0 "Extract provided GLPI crypt file to /etc/glpi"
         echo "${GLPI_CRYPT}" | base64 -d > /tmp/glpicrypt.tgz
         pushd /tmp
         tar xzvf /tmp/glpicrypt.tgz
@@ -158,6 +184,8 @@ recover_glpi_key() {
 }
 
 ###### Execution
+
+note 0 "Script version: ${SCRIPT_VERSION}"
 
 php bin/console system:check_requirements
 
@@ -185,12 +213,12 @@ note 0 "GLPI_DB_USER_NAME: ${GLPI_DB_USER_NAME}"
 note 0 "GLPI_DB_NAME: ${GLPI_DB_NAME}"
 note 0 "GLPI_LANGUAGE: ${GLPI_LANGUAGE}"
 
-cat /etc/glpi/config_db.php
+#cat /etc/glpi/config_db.php
 
 validate_environment
-generate_db_configuration
+generate_configuration
 
-cat /etc/glpi/config_db.php
+#cat /etc/glpi/config_db.php
 note 0 'Check schema integrity'
 php bin/console db:check_schema_integrity
 CHECK_INTEGRITY_RES=$?
@@ -199,8 +227,6 @@ if [ $CHECK_INTEGRITY_RES -eq 1 ] || [ $CHECK_INTEGRITY_RES -eq 4 ]; then
     if [ ! -v GLPI_INSTALL_DEFAULT_OPTIONS ]; then
         GLPI_INSTALL_DEFAULT_OPTIONS="--default-language=${GLPI_LANGUAGE} --no-interaction --no-telemetry"
     fi
-    # validate_environment
-    # generate_db_configuration
     install_fs
     install_db
 # elif [ ! $? -eq 0 ]; then

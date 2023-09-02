@@ -1,0 +1,32 @@
+---
+- name: "Remove Mariadb"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+    - name: "Check the Trikora Helm Chart folder variable is defined"
+      assert:
+        that:
+          - "trikora_helm_project_dir is defined"
+        msg:
+          - "Please specify the Trikora Helm Chart folder variable ('trikora_helm_project_dir')"
+
+  tasks:
+
+    - name: "Remove PHP My Admin using Helm Chart"
+      kubernetes.core.helm:
+        name: mariadb
+        chart_ref: "{{ trikora_helm_project_dir }}/mariadb"
+        release_namespace: "{{ k8s_namespace }}"
+        state: absent
+        wait: true
+
+...

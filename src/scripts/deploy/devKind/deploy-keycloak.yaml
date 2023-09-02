@@ -1,0 +1,77 @@
+---
+- name: "Deploy Keycloak"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+    # - name: "Debug variables"
+    #   debug:
+    #     msg: "{{ var_debug_item }}"
+    #   loop:
+    #     # - "ansible_facts: {{ ansible_facts }}"
+    #     # - "ansible_local: {{ ansible_local }}"
+    #     # - "mariadb_host_port: {{ mariadb_host_port }}"
+    #     # - "grafana_host_port: {{ grafana_host_port }}"
+    #     # - "keycloak_admin_http_host_port: {{ keycloak_admin_http_host_port }}"
+    #     # - "keycloak_admin_https_host_port: {{ keycloak_admin_https_host_port }}"
+    #     # - "pod_name: {{ pod_name }}"
+    #   loop_control:
+    #     loop_var: var_debug_item
+
+  tasks:
+    - name: Build keycloak image
+      ansible.builtin.shell: |
+        buildah build -t trikora_workplace_mgr_dev_keycloak -f ../../images/keycloak/Dockerfile ../../../..
+        buildah build -t trikora_workplace_mgr_dev_keycloak_init -f ../../images/keycloak/Dockerfile-init ../../../..
+      when: skip_image_build is undefined or not (skip_image_build | bool)
+
+    - name: Collect the image ID for the Keycloak dev image.
+      ansible.builtin.shell: |
+       buildah images --filter reference=trikora_workplace_mgr_dev_keycloak --format="{% raw %}{{.ID}}{% endraw %}"
+      register: keycloak_image_id
+      when: skip_image_build is undefined or not (skip_image_build | bool)
+
+    - name: "Print keycloak image id"
+      debug:
+        msg: "{{ keycloak_image_id }}"
+        verbosity: 2
+
+    - name: Push the image to the local repository.
+      ansible.builtin.shell: |
+        buildah push $(buildah images --filter reference=trikora_workplace_mgr_dev_keycloak --format="{% raw %}{{.ID}}{% endraw %}") \
+        docker://{{ container_registry_name }}:{{ container_registry_port }}/trikora_workplace_mgr_dev_keycloak:20.0.3-$(buildah images --filter reference=trikora_workplace_mgr_dev_keycloak --format="{% raw %}{{.Tag}}{% endraw %}")
+        buildah push $(buildah images --filter reference=trikora_workplace_mgr_dev_keycloak_init --format="{% raw %}{{.ID}}{% endraw %}") \
+        docker://{{ container_registry_name}}:{{ container_registry_port }}/trikora_workplace_mgr_dev_keycloak_init:20.0.3-$(buildah images --filter reference=trikora_workplace_mgr_dev_keycloak_init --format="{% raw %}{{.Tag}}{% endraw %}")
+      when: skip_image_build is undefined or not (skip_image_build | bool)
+
+    - name: "Template keycloak deployment"
+      ansible.builtin.template:
+          src: "../keycloak/deployment/20-deployment.yaml.j2"
+          dest: "/tmp/keycloak-20-deployment.yaml"
+          mode: '0644'
+
+    - name: Create a Deployment by reading the definition from a local file
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ keycloak_k8s_yaml_file }}"
+      loop:
+        - ../keycloak/deployment/10-configmap.yaml
+        - ../keycloak/deployment/15-secret.yaml
+        - /tmp/keycloak-20-deployment.yaml
+        - ../keycloak/deployment/31-service-ingress.yaml
+        - ../keycloak/deployment/40-ingress.yaml
+      loop_control:
+        loop_var: keycloak_k8s_yaml_file
+
+    - name: "Keycloak URL"
+      debug:
+        msg: "Keycloak Console URL: http://keycloak.twm.svc.cluster.local/"
+...

@@ -1,0 +1,62 @@
+---
+- name: "Deploy KinD cluster"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+  tasks:
+    - name: "Install required packages"
+      ansible.builtin.package:
+        name: "{{ package_item }}"
+        state: present
+      become: true
+      loop: "{{ required_packages }}"
+      loop_control:
+        loop_var: package_item
+    # TODO
+#    - name: "Install python packages from requirements"
+#      ansible.builtin.shell: "ansible-galaxy install -r requirements.yml"
+
+    - name: "Install required collections"
+      ansible.builtin.shell: "ansible-galaxy install -r requirements.yml"
+
+    - name: Add the local resolution to your host (1/3)
+      ansible.builtin.lineinfile:
+        line: "# [START] trikora-glpi KinD resolutions"
+        path: /etc/hosts
+        state: present
+      become: true
+
+    - name: Add the local resolution to your host (2/3)
+      ansible.builtin.lineinfile:
+        insertafter: "# [START] trikora-glpi resolutions"
+        line: "{{ etc_hosts_entry }}"
+        path: /etc/hosts
+        state: present
+      loop:
+        - "127.0.0.1    kind-registry.local"
+        - "127.0.0.1    keycloak.twm.svc.cluster.local"
+        - "127.0.0.1    itwm-bl.twm.svc.cluster.local"
+        - "127.0.0.1    itwm-web.twm.svc.cluster.local"
+        - "127.0.0.1    phpmyadmin.twm.svc.cluster.local"
+        - "127.0.0.1    grafana.twm.svc.cluster.local"
+      loop_control:
+        loop_var: etc_hosts_entry
+      become: true
+
+    - name: Add the local resolution to your host (3/3)
+      ansible.builtin.lineinfile:
+        insertafter: "# [START] trikora-glpi resolutions"
+        line: "# [END] trikora-glpi KinD resolutions"
+        path: /etc/hosts
+        state: present
+      become: true
+...

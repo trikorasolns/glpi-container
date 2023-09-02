@@ -1,0 +1,117 @@
+---
+- name: "Deploy Trikora Workplace Manager WEB"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project default vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - defaults/main.yaml
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+
+    - name: Check the Trikora Workplace Manager WEB project folder variable is defined
+      assert:
+        that:
+          - "itwm_web_project_folder is defined"
+        msg:
+          - "Please specify the Trikora Worplace Manager WEB project folder variable ('itwm_web_project_folder')"
+
+    - name: "Get docker service status"
+      ansible.builtin.systemd:
+        name: "docker"
+      register: docker_service_status
+
+    - name: "Debug"
+      debug:
+        var: docker_service_status
+        verbosity: 2
+
+    - name: "Check docker service is started"
+      assert:
+        that:
+          - "docker_service_status.status.ActiveState|lower == 'active'"
+        msg:
+          - "Please start the docker service prior to executing this playbook. Docker state is {{ docker_service_status.status.ActiveState }}."
+
+  tasks:
+    - name: "Create container image with buildah"
+      ansible.builtin.shell: |
+        buildah build -t trikora-itsm-webapp:$(jq .version angular.json) -f Dockerfile-kind .
+      args:
+        chdir: "{{ itwm_web_project_folder }}"
+      when: "skip_image_build is undefined or not (skip_image_build | bool)"
+
+    - name: Print push command
+      ansible.builtin.debug:
+        msg: buildah push $(buildah images --filter reference=trikora-itsm-webapp --format="{% raw %}{{.ID}}{% endraw %}") docker://{{ container_registry_name }}:{{ container_registry_port }}/trikora-itsm-webapp:$(buildah images --filter reference=trikora-itsm-webapp --format="{% raw %}{{.Tag}}{% endraw %}")
+
+    - name: Push the image to the kind container registry
+      ansible.builtin.shell: |
+        buildah push $(buildah images --filter reference=trikora-itsm-webapp --format="{% raw %}{{.ID}}{% endraw %}") \
+        docker://{{ container_registry_name }}:{{ container_registry_port }}/trikora-itsm-webapp:$(buildah images --filter reference=trikora-itsm-webapp --format="{% raw %}{{.Tag}}{% endraw %}")
+        buildah push $(buildah images --filter reference=trikora-itsm-webapp --format="{% raw %}{{.ID}}{% endraw %}") \
+        docker://{{ container_registry_name }}:{{ container_registry_port }}/trikora-itsm-webapp:latest
+      when: "skip_image_push is undefined or not (skip_image_push | bool)"
+
+    - name: "Template the WEB deployment"
+      ansible.builtin.template:
+          src: "{{ itwm_web_project_folder }}/kind/templates/20-deployment.yaml.j2"
+          dest: "/tmp/itwm-web-20-deployment.yaml"
+          mode: '0644'
+
+    - name: Check if a previous deployment exists on k8s
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Deployment
+        name: itwm-web
+        namespace: "{{ k8s_namespace }}"
+      register: web_deployment
+
+    - name: "Debug web_deployment"
+      debug:
+        msg: "web_deployment: {{ web_deployment }}"
+        verbosity: 2
+
+    - name: "Delete WEB using the deployment file"
+      kubernetes.core.k8s:
+        state: absent
+        src: "/tmp/itwm-web-20-deployment.yaml"
+      when: (web_deployment.resources | length > 0)
+
+    - name: "Delete WEB deployment using kubectl"
+      kubernetes.core.k8s:
+        state: absent
+        kind: Deployment
+        name: itwm-web
+        namespace: "{{ k8s_namespace }}"
+      when: (web_deployment.resources | length > 0)
+
+    - name: "Deploy WEB"
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ web_k8s_yaml_file }}"
+      loop:
+        - "{{ itwm_web_project_folder }}/kind/files/10-configmap.yaml"
+        - "{{ itwm_web_project_folder }}/kind/files/15-secret.yaml"
+        - "/tmp/itwm-web-20-deployment.yaml"
+        - "{{ itwm_web_project_folder }}/kind/files/35-service.yaml"
+        - "{{ itwm_web_project_folder }}/kind/files/40-ingress.yaml"
+      loop_control:
+        loop_var: web_k8s_yaml_file
+
+    - name: "Complementary information"
+      debug:
+        msg:
+          - "WARNING: it may take a while for the application to be READY the first time."
+          - " "
+          - "Open the application using the following URL: http://keycloak.twm.svc.cluster.local/"
+          - " "
+          - "Check the pod logs using the following command: "
+          - "    kubectl -n twm logs -f $(kubectl get pods -n twm | grep itwm-web |  awk '{print $1}')"
+        verbosity: 0
+...
+# ansible-playbook src/main/kind/ansible/deploy-itsmweb.yaml -e itwm_web_project_folder=$(pwd)/..
+# -e skip_image_build=true

@@ -1,7 +1,6 @@
 = GLPI on Kubernetes
 A.C. <a dot costa at trikorasolutions dot com>
 :Date:      {docdate}
-:Revision:  1
 :table-caption: Table
 :toc: left
 :toc-title: Table of Contents
@@ -9,6 +8,13 @@ A.C. <a dot costa at trikorasolutions dot com>
 :source-highlighter: rouge
 :description: The aim of this project is to implement the infrastructure 
 required to deploy GLPI on a Kubernetes cluster.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
 
 == Introduction
 

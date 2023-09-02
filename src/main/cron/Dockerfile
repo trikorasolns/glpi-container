@@ -5,14 +5,11 @@ ARG GLPI_CONFIG_DIR=/etc/glpi
 ARG GLPI_FILES_DIR=/var/lib/glpi
 ARG GLPI_LOG_DIR=/var/log/glpi
 ARG GLPI_OPT_DIR=/opt/glpi
-
-COPY src/main/init/script/glpi-install.sh ${GLPI_OPT_DIR}/
-
-RUN chown -R www-data:www-data ${GLPI_OPT_DIR} \
-  && chmod 755  ${GLPI_OPT_DIR}/glpi-install.sh
+ARG HTTP_WWW=/var/www/html
+ARG GLPI_WWW=${HTTP_WWW}/glpi
 
 VOLUME $GLPI_FILES_DIR
 VOLUME $GLPI_CONFIG_DIR
 VOLUME $GLPI_LOG_DIR
 
-CMD [${GLPI_OPT}+"/glpi-install.sh"]
+CMD ['php', ${GLPI_WWW}+'/front/cron.php']

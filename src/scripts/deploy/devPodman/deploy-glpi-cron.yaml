@@ -1,5 +1,5 @@
 ---
-- name: "Deploy GLPI web locally using Podman"
+- name: "Deploy GLPI cron locally using Podman"
   hosts: "{{ target_host | default('localhost') }}"
   gather_facts: true
 
@@ -12,10 +12,10 @@
         loop_var: file_to_include
 
   tasks:
-    - name: "Start GLPI"
+    - name: "Start GLPI cron"
       containers.podman.podman_container:
-        name: "{{ pod_name }}_web"
-        image: "localhost/{{ pod_name }}_web"
+        name: "{{ pod_name }}_cron"
+        image: "localhost/{{ pod_name }}_cron"
         pod: "{{ pod_name }}"
         state: started
         user: 33

@@ -28,7 +28,14 @@ ansible-playbook src/scripts/build/build-images.yaml
 
 === Using the command line
 
-Build the GLPI init image.
+Build the GLPI core image.
+
+[source,bash]
+----
+buildah bud -t trikorasolns_glpi_core -f src/main/core/Dockerfile
+----
+
+Build the GLPI init container image.
 
 [source,bash]
 ----
