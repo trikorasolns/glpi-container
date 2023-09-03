@@ -40,7 +40,16 @@ Login into the link:https://quay.io/[Quay.io] container registry.
 buildah login quay.io
 ----
 
-Set the disered tag number.
+=== Using Ansible
+
+[source,bash]
+----
+ansible-playbook src/scripts/build/tag-images.yaml -e tag_number="0.0.5"
+----
+
+=== Using the command line
+
+Set the desired tag number.
 
 [source,bash]
 ----
