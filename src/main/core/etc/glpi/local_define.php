@@ -1,4 +1,7 @@
 <?php
+// WARNING:
+// This file won't be applied to the container. Changes made to this
+// file must be done by modifying the glpi-install.sh script.
 define('GLPI_FILES_DIR', '/var/lib/glpi');
 define('GLPI_VAR_DIR',          GLPI_FILES_DIR);
 define('GLPI_DOC_DIR',          GLPI_FILES_DIR);
