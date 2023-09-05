@@ -90,29 +90,30 @@ EOF
     cat /etc/glpi/local_define.php
 
     note_start_task 0 "generate_local_define()"
-    cat <<EOF > /etc/glpi/local_define.php
-<?php
-define('GLPI_FILES_DIR', '/var/lib/glpi');
-define('GLPI_VAR_DIR',          GLPI_FILES_DIR);
-define('GLPI_DOC_DIR',          GLPI_FILES_DIR);
-define('GLPI_CACHE_DIR',        GLPI_FILES_DIR . '/_cache');
-define('GLPI_CRON_DIR',         GLPI_FILES_DIR . '/_cron');
-define('GLPI_DUMP_DIR',         GLPI_FILES_DIR . '/_dumps');
-define('GLPI_GRAPH_DIR',        GLPI_FILES_DIR . '/_graphs');
-define('GLPI_LOCAL_I18N_DIR',   GLPI_FILES_DIR . '/_locales');
-define('GLPI_LOCK_DIR',         GLPI_FILES_DIR . '/_lock');
-define('GLPI_PICTURE_DIR',      GLPI_FILES_DIR . '/_pictures');
-define('GLPI_PLUGIN_DOC_DIR',   GLPI_FILES_DIR . '/_plugins');
-define('GLPI_RSS_DIR',          GLPI_FILES_DIR . '/_rss');
-define('GLPI_SESSION_DIR',      GLPI_FILES_DIR . '/_sessions');
-define('GLPI_TMP_DIR',          GLPI_FILES_DIR . '/_tmp');
-define('GLPI_UPLOAD_DIR',       GLPI_FILES_DIR . '/_uploads');
-define('GLPI_UPLOAD_DIR',       GLPI_FILES_DIR . '/_uploads');
-define('GLPI_INVENTORY_DIR',    GLPI_FILES_DIR . '/_inventories');
-define('GLPI_MARKETPLACE_DIR',  GLPI_FILES_DIR . '/marketplace');
+    cp /opt/glpi/local_define.php /etc/glpi/local_define.php
+#     cat <<EOF > /etc/glpi/local_define.php
+# <?php
+# define('GLPI_FILES_DIR', '/var/lib/glpi');
+# define('GLPI_VAR_DIR',          GLPI_FILES_DIR);
+# define('GLPI_DOC_DIR',          GLPI_FILES_DIR);
+# define('GLPI_CACHE_DIR',        GLPI_FILES_DIR . '/_cache');
+# define('GLPI_CRON_DIR',         GLPI_FILES_DIR . '/_cron');
+# define('GLPI_DUMP_DIR',         GLPI_FILES_DIR . '/_dumps');
+# define('GLPI_GRAPH_DIR',        GLPI_FILES_DIR . '/_graphs');
+# define('GLPI_LOCAL_I18N_DIR',   GLPI_FILES_DIR . '/_locales');
+# define('GLPI_LOCK_DIR',         GLPI_FILES_DIR . '/_lock');
+# define('GLPI_PICTURE_DIR',      GLPI_FILES_DIR . '/_pictures');
+# define('GLPI_PLUGIN_DOC_DIR',   GLPI_FILES_DIR . '/_plugins');
+# define('GLPI_RSS_DIR',          GLPI_FILES_DIR . '/_rss');
+# define('GLPI_SESSION_DIR',      GLPI_FILES_DIR . '/_sessions');
+# define('GLPI_TMP_DIR',          GLPI_FILES_DIR . '/_tmp');
+# define('GLPI_UPLOAD_DIR',       GLPI_FILES_DIR . '/_uploads');
+# define('GLPI_UPLOAD_DIR',       GLPI_FILES_DIR . '/_uploads');
+# define('GLPI_INVENTORY_DIR',    GLPI_FILES_DIR . '/_inventories');
+# define('GLPI_MARKETPLACE_DIR',  GLPI_FILES_DIR . '/marketplace');
 
-define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
+# define('GLPI_LOG_DIR', '/var/log/glpi');
+# EOF
     succeeded 0 "generate_local_define()"
     note 0 "print local_define()"
     cat /etc/glpi/local_define.php

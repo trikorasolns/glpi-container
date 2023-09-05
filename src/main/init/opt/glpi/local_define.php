@@ -1,7 +1,6 @@
 <?php
-// WARNING:
-// This file won't be applied to the container. Changes made to this
-// file must be done by modifying the glpi-install.sh script.
+// NOTE:
+// This file is to be copied into /etc/glpi/local_define.php
 define('GLPI_FILES_DIR', '/var/lib/glpi');
 define('GLPI_VAR_DIR',          GLPI_FILES_DIR);
 define('GLPI_DOC_DIR',          GLPI_FILES_DIR);
@@ -17,9 +16,8 @@ define('GLPI_RSS_DIR',          GLPI_FILES_DIR . '/_rss');
 define('GLPI_SESSION_DIR',      GLPI_FILES_DIR . '/_sessions');
 define('GLPI_TMP_DIR',          GLPI_FILES_DIR . '/_tmp');
 define('GLPI_UPLOAD_DIR',       GLPI_FILES_DIR . '/_uploads');
-define('GLPI_UPLOAD_DIR',       GLPI_FILES_DIR . '/_uploads');
 define('GLPI_INVENTORY_DIR',    GLPI_FILES_DIR . '/_inventories');
-define('GLPI_MARKETPLACE_DIR',  GLPI_FILES_DIR . '/marketplace');
+// define('GLPI_MARKETPLACE_DIR',  GLPI_FILES_DIR . '/marketplace');
 
 define('GLPI_LOG_DIR', '/var/log/glpi');
 

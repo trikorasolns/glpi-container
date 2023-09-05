@@ -6,7 +6,7 @@ ARG GLPI_FILES_DIR=/var/lib/glpi
 ARG GLPI_LOG_DIR=/var/log/glpi
 ARG GLPI_OPT_DIR=/opt/glpi
 
-COPY src/main/init/script/glpi-install.sh ${GLPI_OPT_DIR}/
+COPY src/main/init/opt/glpi/* ${GLPI_OPT_DIR}/
 
 RUN chown -R www-data:www-data ${GLPI_OPT_DIR} \
   && chmod 755  ${GLPI_OPT_DIR}/glpi-install.sh
