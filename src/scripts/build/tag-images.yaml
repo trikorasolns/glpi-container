@@ -4,31 +4,31 @@
   gather_facts: true
 
   pre_tasks:
-    - name: "Include project default vars"
+    - name: "Include project vars"
       ansible.builtin.include_vars: "{{ file_to_include }}"
       loop:
-        - ../defaults/main.yaml
-        - defaults/main.yaml
+        - vars/main.yaml
       loop_control:
         loop_var: file_to_include
+      
+    - name: Check the required variables are set
+      assert:
+        that:
+          - "tag_number is defined and (tag_number | length > 0)"
+        msg:
+          - "Please specify the tag (tag_number) to apply to the image"
 
   tasks:
-    - name: "Build init image"
+    - name: "Tag images"
       ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
-      args:
-        chdir: "{{ chdir_ref }}"
+        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }}:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:{{ tag_number }}
+        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }}:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:latest
+      loop:
+        - core
+        - init
+        - web
+        - cron
+      loop_control:
+        loop_var: image_to_tag
 
-    - name: "Build web image"
-      ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
-      args:
-        chdir: "{{ chdir_ref }}"
-
-    # - name: "Build cron image"
-    #   ansible.builtin.shell: |
-    #     buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
-    #     buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
-    #   args:
-    #     chdir: "{{ chdir_ref }}"
 ...
