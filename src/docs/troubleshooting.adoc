@@ -32,7 +32,7 @@ Execute the the `php bin/console` command in the `/var/www/html` folder.
 
 [source, shell script]
 ----
-$ kubectl -n glpi exec -it glpi-5847c6b6b-scv8b --  /bin/bash
+$ kubectl -n glpi exec -it $(kubectl get pods -n glpi | grep glpi |  awk '{print $1}') --  /bin/bash
 [root@glpi-5847c6b6b-scv8b html]# cd /var/www/html
 [root@glpi-5847c6b6b-scv8b html]# php bin/console
 GLPI CLI 9.5.3
@@ -138,3 +138,18 @@ The original GLPI crypt file is missing on the new installation.
 Restore the `glpicrypt.key` file.
 
 
+== Execute cron manually
+
+=== Problem
+
+How to execute the glpi cron manually?
+
+=== Cause
+
+
+=== Solution
+
+[source,bash]
+----
+kubectl -n glpi exec -it $(kubectl get pods -n glpi | grep glpi |  awk '{print $1}') -- php front/cron.php
+----
