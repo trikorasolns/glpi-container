@@ -122,8 +122,9 @@ EOF
 
 install_fs() {
     note 0 "install_fs()"
-    mkdir /var/lib/glpi/_cache/templates
-    chown 33:33 -R /var/lib/glpi/_cache
+    mkdir -p /var/lib/glpi/{_cache/templates,'_cron','_dumps','_graphs','_lock','_pictures','_plugins','_rss','_sessions','_tmp','_uploads'}
+    # chown 33:33 -R /var/lib/glpi/_cache
+    chown 33:33 -R /var/lib/glpi/
 }
 
 install_db() {
