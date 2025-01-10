@@ -23,11 +23,11 @@ link:build.adoc[Build the Container Image]
 
 === Podman
 
-link:podman/deploy.adoc[Deploy the image locally using Podman]
+link:dev/podman/deploy.adoc[Deploy the image locally using Podman]
 
-link:podman/restore.adoc[Restore a GLPI database]
+link:dev/podman/restore.adoc[Restore a GLPI database]
 
-link:podman/upgrade.adoc[Upgrade a GLPI instance]
+link:dev/podman/upgrade.adoc[Upgrade a GLPI instance]
 
 === KinD
 

@@ -183,7 +183,7 @@ recover_glpi_key() {
         # GLPI_CONFIG_DIR variable from downstream.php
         mv glpicrypt.key /etc/glpi/
         popd
-        success 0 "Extract provided GLPI crypt file to /etc/glpi"
+        succeeded 0 "Extract provided GLPI crypt file to /etc/glpi"
         ls -l /etc/glpi/
     else
         note 0 "No GLPI crypt file provided."
