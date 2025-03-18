@@ -1,6 +1,6 @@
 # CORE CONTAINER
 FROM alpine:3.17.5 as unzipper
-ARG GLPI_VERSION="10.0.9"
+ARG GLPI_VERSION="10.0.18"
 
 RUN apk add curl
 RUN mkdir /opt/ ; \
@@ -8,7 +8,7 @@ RUN mkdir /opt/ ; \
   && chmod -R 755 /opt/glpi/*.php
 
 # ENV PHP_VERSION=8.1-apache
-FROM php:8.1-apache
+FROM php:8.3-apache
 
 ARG GLPI_CONFIG_DIR=/etc/glpi
 #ARG GLPI_OPT_DIR=/opt/glpi

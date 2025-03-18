@@ -5,6 +5,7 @@ ARG GLPI_CONFIG_DIR=/etc/glpi
 ARG GLPI_FILES_DIR=/var/lib/glpi
 ARG GLPI_LOG_DIR=/var/log/glpi
 ARG GLPI_OPT_DIR=/opt/glpi
+ENV GLPI_OPT_DIR=${GLPI_OPT_DIR}
 
 COPY src/main/init/opt/glpi/* ${GLPI_OPT_DIR}/
 
@@ -15,4 +16,4 @@ VOLUME $GLPI_FILES_DIR
 VOLUME $GLPI_CONFIG_DIR
 VOLUME $GLPI_LOG_DIR
 
-CMD [${GLPI_OPT}+"/glpi-install.sh"]
+CMD ["/opt/glpi/glpi-install.sh"]
