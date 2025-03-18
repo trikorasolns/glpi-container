@@ -7,20 +7,20 @@ jobs:
   build:
     name: Build the images
     runs-on: ubuntu-latest
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-      mariadb:
-        image: mariadb:"10.10.2"
-        ports:
-          - 3306
-        env:
-          MYSQL_USER: trikorasolns_glpi
-          MYSQL_PASSWORD: trikorasolns_glpi
-          MYSQL_DATABASE: trikorasolns_glpi
-          MYSQL_ROOT_PASSWORD: trikorasolns_glpi
+    # services:
+    #   registry:
+    #     image: registry:2
+    #     ports:
+    #       - 5000:5000
+    #   mariadb:
+    #     image: mariadb:"10.10.2"
+    #     ports:
+    #       - 3306
+    #     env:
+    #       MYSQL_USER: trikorasolns_glpi
+    #       MYSQL_PASSWORD: trikorasolns_glpi
+    #       MYSQL_DATABASE: trikorasolns_glpi
+    #       MYSQL_ROOT_PASSWORD: trikorasolns_glpi
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -29,32 +29,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # needed for progressive mode to work
-      - name: Build core Image
-        id: build-core-image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: trikorasolns_glpi_core
-          containerfiles: |
-            src/main/core/Dockerfile
-      - name: Build init Image
-        id: build-init-image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: trikorasolns_glpi_init
-          containerfiles: |
-            src/main/init/Dockerfile
-      - name: Build web Image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: trikorasolns_glpi_web
-          containerfiles: |
-            src/main/web/Dockerfile
-      - name: Build cron Image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: trikorasolns_glpi_cron
-          containerfiles: |
-            src/main/cron/Dockerfile
+      # - name: Build core Image
+      #   id: build-core-image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_core
+      #     containerfiles: |
+      #       src/main/core/Dockerfile
+      # - name: Build init Image
+      #   id: build-init-image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_init
+      #     containerfiles: |
+      #       src/main/init/Dockerfile
+      # - name: Build web Image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_web
+      #     containerfiles: |
+      #       src/main/web/Dockerfile
+      # - name: Build cron Image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_cron
+      #     containerfiles: |
+      #       src/main/cron/Dockerfile
       # - name: Add 
       #   run: |
       #     cat > /etc/containers/registries.conf.d/localhost.conf <<EOF
@@ -84,7 +84,10 @@ jobs:
       - name: Build containers
         run: |
           ansible-playbook src/scripts/build/build-images.yaml
- 
+
+      - name: List the built images
+        run: |
+          buildah images 
       # - name: Create k8s Kind Cluster
       #   uses: helm/kind-action@v1.5.0
       # - uses: shogo82148/actions-setup-mysql@v1
