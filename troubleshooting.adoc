@@ -143,7 +143,43 @@ After recreating the GLPI container the security key has to be created
 
 === Solution
 
-include::backupNrestore.adoc[tag=reset-security-key]
+Connect to the pod.
+
+[source,bash]
+----
+kubectl -n glpi exec -it glpi-5847c6b6b-scv8b --  /bin/bash
+----
+
+Go to the `html` folder.
+
+[source,bash]
+----
+cd /var/www/html
+----
+
+Execute the _GLPI Change Key_ command.
+
+[source,bash]
+----
+php bin/console glpi:security:change_key
+----
+
+Confirm the generation of the key.
+
+[source,]
+----
+Found 2 field(s) and 3 configuration entries requiring migration.
+Do you want to continue ? [Yes/no]Yes
+
+New security key generated; database updated.
+----
+
+Exit the POD.
+
+[source,bash]
+----
+exit
+----
 
 == Cannot delete PVC
 
