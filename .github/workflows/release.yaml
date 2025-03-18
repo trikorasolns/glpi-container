@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version you want to release (e.g 0.3.0).'
+        description: 'The version you want to release (e.g 0.0.1).'
         required: true
   release:
     types: [published]
@@ -59,7 +59,11 @@ jobs:
       - name: Build containers
         run: |
           ansible-playbook src/scripts/build/build-images.yaml
- 
+
+      - name: List the built images
+        run: |
+          buildah images 
+
       - name: Log in to quay.io
         uses: redhat-actions/podman-login@v1
         with:
