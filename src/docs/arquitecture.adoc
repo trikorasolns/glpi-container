@@ -1,6 +1,6 @@
 = GLPI Container Architecture
-A.C. <a dot costa at trikorasolutions dot com>
-:Date:      {docdate}
+A.C. <ac at trikorasolutions dot com>
+:revdate:      {docdate}
 :Revision:  1
 :table-caption: Table
 :toc: left

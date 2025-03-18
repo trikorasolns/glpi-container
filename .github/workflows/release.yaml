@@ -1,0 +1,88 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version you want to release (e.g 0.3.0).'
+        required: true
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+
+  release:
+    name: Release pushed tag
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # - name: Build core Image
+      #   id: build-core-image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_core
+      #     containerfiles: |
+      #       src/main/core/Dockerfile
+      # - name: Build init Image
+      #   id: build-init-image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_init
+      #     containerfiles: |
+      #       src/main/init/Dockerfile
+      # - name: Build web Image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_web
+      #     containerfiles: |
+      #       src/main/web/Dockerfile
+      # - name: Build cron Image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     image: trikorasolns_glpi_cron
+      #     containerfiles: |
+      #       src/main/cron/Dockerfile
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build containers
+        run: |
+          ansible-playbook src/scripts/build/build-images.yaml
+ 
+      - name: Log in to quay.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_IO_USER }}
+          password: ${{ secrets.QUAY_IO_PASSWORD }}
+
+      - name: "Push to Quay.io"
+        run: |
+          buildah push localhost/trikorasolns_glpi_core:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-core:${{ github.event.inputs.version }}
+          buildah push localhost/trikorasolns_glpi_cron:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-cron:${{ github.event.inputs.version }}
+          buildah push localhost/trikorasolns_glpi_init:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-init:${{ github.event.inputs.version }}
+          buildah push localhost/trikorasolns_glpi_web:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-web:${{ github.event.inputs.version }}
+
+          buildah push localhost/trikorasolns_glpi_core:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-core:latest
+          buildah push localhost/trikorasolns_glpi_cron:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-cron:latest
+          buildah push localhost/trikorasolns_glpi_init:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-init:latest
+          buildah push localhost/trikorasolns_glpi_web:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-web:latest
+
+      - name: Generate Release Tag
+        uses: mokhlesurr031/github-manual-release@v2.0.2
+        with:
+          release-tag-number: ${{ github.event.inputs.version }}
+          user-email: ${{ secrets.USER_EMAIL }}
+          user-name: ${{ secrets.USER_NAME }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

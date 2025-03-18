@@ -1,11 +1,11 @@
-name: Test
+name: CI
 on: 
   push:
   pull_request:
 
 jobs:
   build:
-    name: Build the image
+    name: Build the images
     runs-on: ubuntu-latest
     services:
       registry:
@@ -26,8 +26,7 @@ jobs:
         python-version: ["3.11"]
         # mariadb-version: ["10.10.2"]
     steps:
-      # Important: This sets up your GITHUB_WORKSPACE environment variable
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # needed for progressive mode to work
       - name: Build core Image
@@ -76,11 +75,16 @@ jobs:
       # #     # password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
+ 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # pip install ruff pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
+
+      - name: Build containers
+        run: |
+          ansible-playbook src/scripts/build/build-images.yaml
+ 
       # - name: Create k8s Kind Cluster
       #   uses: helm/kind-action@v1.5.0
       # - uses: shogo82148/actions-setup-mysql@v1

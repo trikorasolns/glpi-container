@@ -1,6 +1,6 @@
 = GLPI on Kubernetes
-A.C. <a dot costa at trikorasolutions dot com>
-:Date:      {docdate}
+A.C. <ac at trikorasolutions dot com>
+:revdate:      {docdate}
 :table-caption: Table
 :toc: left
 :toc-title: Table of Contents
