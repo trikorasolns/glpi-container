@@ -100,4 +100,4 @@ in this installation as defined by the `downstream.php` file.
 
 == More information
 
-More information on the link:src/docs/index.adoc[documentation] folder.
+More information on the link:src/docs/README.adoc[documentation] folder.
