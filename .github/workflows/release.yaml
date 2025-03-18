@@ -4,8 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version you want to release (e.g 0.0.1).'
+        description: 'The version to be released. Check the latest released version on GitHub project tags as well as on the Quay.io repository (https://quay.io/repository/trikorasolns/glpi-container/glpi-container-init?tab=tags).'
         required: true
+      # release_type:
+      #   description: 'Release type'
+      #   type: choice
+      #   default: 'patch'
+      #   options:
+      #     - major
+      #     - minor
+      #     - patch
+      #     - custom
+
   release:
     types: [published]
 
@@ -71,6 +81,15 @@ jobs:
           username: ${{ secrets.QUAY_IO_USER }}
           password: ${{ secrets.QUAY_IO_PASSWORD }}
 
+      - name: Create or update major version
+        uses: joutvhu/create-tag@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          message: ${{ github.event.inputs.version }}
+          on_tag_exists: error
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: "Push to Quay.io"
         run: |
           buildah push localhost/trikorasolns_glpi_core:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-core:${{ github.event.inputs.version }}
@@ -82,11 +101,3 @@ jobs:
           buildah push localhost/trikorasolns_glpi_cron:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-cron:latest
           buildah push localhost/trikorasolns_glpi_init:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-init:latest
           buildah push localhost/trikorasolns_glpi_web:latest docker://quay.io/trikorasolns/glpi-container/glpi-container-web:latest
-
-      - name: Generate Release Tag
-        uses: mokhlesurr031/github-manual-release@v2.0.2
-        with:
-          release-tag-number: ${{ github.event.inputs.version }}
-          user-email: ${{ secrets.USER_EMAIL }}
-          user-name: ${{ secrets.USER_NAME }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
