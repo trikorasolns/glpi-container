@@ -3,12 +3,11 @@ FROM alpine:3.17.5 as unzipper
 ARG GLPI_VERSION="10.0.18"
 
 RUN apk add curl
-RUN mkdir /opt/ ; \
+RUN mkdir -p /opt/ ; \
   curl https://github.com/glpi-project/glpi/releases/download/${GLPI_VERSION}/glpi-${GLPI_VERSION}.tgz -L | tar xvzf - -C /opt \
   && chmod -R 755 /opt/glpi/*.php
 
-# ENV PHP_VERSION=8.1-apache
-FROM php:8.3-apache
+FROM php:8.3-apache-bullseye
 
 ARG GLPI_CONFIG_DIR=/etc/glpi
 #ARG GLPI_OPT_DIR=/opt/glpi

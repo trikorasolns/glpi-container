@@ -1,0 +1,13 @@
+---
+- name: Build the images
+  ansible.builtin.import_playbook: ../../build/build-images.yaml
+
+- name: Deploy the database
+  ansible.builtin.import_playbook: deploy-database.yaml
+
+- name: Deploy the GLPI init container
+  ansible.builtin.import_playbook: deploy-glpi-init.yaml
+
+- name: Deploy the GLPI WEB container
+  ansible.builtin.import_playbook: deploy-glpi-web.yaml
+...

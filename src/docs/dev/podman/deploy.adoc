@@ -24,9 +24,19 @@ link:https://podman.io/[Podman].
 
 Requires the container image to be built. Check link:build.adoc[The build document] for more information.
 
+
 == Deploy the application
 
 To deploy GLPI locally using Podman execute the ansible playbooks provided.
+
+To deploy all components executing 1 command
+
+[source,bash]
+----
+ansible-playbook src/scripts/deploy/devPodman/deploy-app.yaml
+----
+
+== Deploy each component
 
 === Instanciate a MariaDB database
 
