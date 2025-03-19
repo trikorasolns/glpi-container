@@ -174,12 +174,3 @@ podman exec -it trikorasolns_glpi_glpi /bin/bash
 ----
 ansible-playbook src/scripts/deploy/devPodman/undeploy-app.yaml
 ----
-
-== Security scan the image
-
-Using link:[Grype] 
-
-[source,bash]
-----
-grype localhost/trikorasolns_glpi_core -o json  | jq '.matches.[] | select(.vulnerability.severity == "Critical")' | jq '{id:.vulnerability.id, name:.artifact.name}'
-----
