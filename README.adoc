@@ -21,6 +21,17 @@ endif::[]
 The aim of this project is to implement the infrastructure 
 required to deploy GLPI on a Kubernetes cluster.
 
+== Version alignment
+
+.Version Alignment
+[%header,cols="60%m,40%m"]
+|===
+| glpi-container version | GLPI version | PHP version
+| 0.1.0 | 10.0.18 | 8.3.19
+| 0.0.11 | 10.0.18 | 8.3.19
+| 0.0.10 | 10.0.9 | 8.1.23
+|===
+
 == Usage
 
 .Environment variables
