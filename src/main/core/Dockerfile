@@ -7,7 +7,7 @@ RUN mkdir -p /opt/ ; \
   curl https://github.com/glpi-project/glpi/releases/download/${GLPI_VERSION}/glpi-${GLPI_VERSION}.tgz -L | tar xvzf - -C /opt \
   && chmod -R 755 /opt/glpi/*.php
 
-FROM php:8.3-apache-bullseye
+FROM php:8.3-apache
 
 ARG GLPI_CONFIG_DIR=/etc/glpi
 #ARG GLPI_OPT_DIR=/opt/glpi
