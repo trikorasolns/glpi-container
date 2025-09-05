@@ -1,0 +1,54 @@
+---
+- name: "Release tagged images"
+  hosts: "{{ target_host | default('localhost') }}"
+  gather_facts: true
+
+  pre_tasks:
+    - name: "Include project vars"
+      ansible.builtin.include_vars: "{{ file_to_include }}"
+      loop:
+        - vars/main.yaml
+      loop_control:
+        loop_var: file_to_include
+      
+    - name: "Get version"
+      ansible.builtin.shell: |
+        jq -r '(.major | tostring) + "." + (.minor | tostring) + "." + (.patch | tostring) + if .snapshot then "-SNAPSHOT" else "" end' ../../../version.json
+      register: current_version_reg
+
+    - name: "Set version"
+      ansible.builtin.set_fact:
+        glpi_release_version: "{{ current_version_reg.stdout }}"
+
+    # - name: Check the required variables are set
+    #   assert:
+    #     that:
+    #       - "tag_number is defined and (tag_number | length > 0)"
+    #     msg:
+    #       - "Please specify the tag (tag_number) to apply to the image"
+
+  tasks:
+    - name: "Push image TAG to Quay.io - {{ glpi_release_version }}"
+      ansible.builtin.shell: |
+        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }}:{{ glpi_release_version }} docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:{{ glpi_release_version }}
+      loop:
+        - core
+        - init
+        - web
+        - cron
+      loop_control:
+        loop_var: image_to_tag
+
+    - name: "Push images TAG to Quay.io as latest"
+      ansible.builtin.shell: |
+        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }}:{{ glpi_release_version }} docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:latest
+      loop:
+        - core
+        - init
+        - web
+        - cron
+      loop_control:
+        loop_var: image_to_tag
+      when: "'SNAPSHOT' not in glpi_release_version"
+
+...

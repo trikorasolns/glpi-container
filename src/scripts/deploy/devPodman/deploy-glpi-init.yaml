@@ -11,6 +11,15 @@
       loop_control:
         loop_var: file_to_include
 
+    - name: "Get version"
+      ansible.builtin.shell: |
+        jq -r '(.major | tostring) + "." + (.minor | tostring) + "." + (.patch | tostring) + if .snapshot then "-SNAPSHOT" else "" end' ../../../version.json
+      register: current_version_reg
+
+    - name: "Set version"
+      ansible.builtin.set_fact:
+        glpi_version: current_version_reg.stdout
+
   tasks:
     - name: Set crypt file contents
       ansible.builtin.set_fact:
@@ -41,7 +50,7 @@
     - name: "Launch init container"
       containers.podman.podman_container:
         name: "{{ pod_name }}_init"
-        image: "localhost/{{ pod_name }}_init"
+        image: "localhost/{{ pod_name }}_init:{{ glpi_version }}"
         pod: "{{ pod_name }}"
         # privileged: true
         state: started
