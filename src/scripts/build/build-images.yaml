@@ -23,25 +23,25 @@
   tasks:
     - name: "Build the CORE image"
       ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_core:{{ glpi_release_version }} -f src/main/core/Dockerfile
+        buildah bud -t {{ image_prefix }}_core -f src/main/core/Dockerfile
       args:
         chdir: "{{ chdir_ref }}"
 
     - name: "Build the init container image"
       ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_init:{{ glpi_release_version }} -f src/main/init/Dockerfile
+        buildah bud -t {{ image_prefix }}_init -f src/main/init/Dockerfile
       args:
         chdir: "{{ chdir_ref }}"
 
     - name: "Build the web application image"
       ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_web:{{ glpi_release_version }} -f src/main/web/Dockerfile
+        buildah bud -t {{ image_prefix }}_web -f src/main/web/Dockerfile
       args:
         chdir: "{{ chdir_ref }}"
 
     - name: "Build the cron image"
       ansible.builtin.shell: |
-        buildah bud -t {{ image_prefix }}_cron:{{ glpi_release_version }} -f src/main/cron/Dockerfile
+        buildah bud -t {{ image_prefix }}_cron -f src/main/cron/Dockerfile
       args:
         chdir: "{{ chdir_ref }}"
 ...

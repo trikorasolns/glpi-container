@@ -13,8 +13,12 @@
 
     - name: "Get version"
       ansible.builtin.shell: |
-        jq -r '(.major | tostring) + "." + (.minor | tostring) + "." + (.patch | tostring)' version.json
+        jq -r '(.major | tostring) + "." + (.minor | tostring) + "." + (.patch | tostring) + if .snapshot then "-SNAPSHOT" else "" end' ../../../version.json
       register: current_version
+
+    - name: "Print version"
+      ansible.builtin.debug:
+        var: current_version
 
   tasks:
     - name: "Build the CORE image"

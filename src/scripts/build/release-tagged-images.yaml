@@ -30,7 +30,7 @@
   tasks:
     - name: "Push image TAG to Quay.io - {{ glpi_release_version }}"
       ansible.builtin.shell: |
-        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }}:{{ glpi_release_version }} docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:{{ glpi_release_version }}
+        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }} docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:{{ glpi_release_version }}
       loop:
         - core
         - init
@@ -41,7 +41,7 @@
 
     - name: "Push images TAG to Quay.io as latest"
       ansible.builtin.shell: |
-        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }}:{{ glpi_release_version }} docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:latest
+        buildah push localhost/trikorasolns_glpi_{{ image_to_tag }} docker://quay.io/trikorasolns/glpi-container/glpi-container-{{ image_to_tag }}:latest
       loop:
         - core
         - init
