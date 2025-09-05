@@ -184,7 +184,7 @@ recover_glpi_key() {
         mv glpicrypt.key /etc/glpi/
         popd
         succeeded 0 "Extract provided GLPI crypt file to /etc/glpi"
-        ls -l /etc/glpi/
+        ls -la /etc/glpi/
     else
         note 0 "No GLPI crypt file provided."
     fi
@@ -192,7 +192,20 @@ recover_glpi_key() {
 
 ###### Execution
 
+if [ ! -v LOGGING_VERBOSITY ]; then
+    LOGGING_VERBOSITY=0
+fi
+
 note 0 "Script version: ${SCRIPT_VERSION}"
+note 0 "whoami: $(whoami)"
+note 0 "groups: $(groups)"
+
+note 0 "/etc/glpi"
+ls -la /etc/glpi
+note 0 "/var/lib/glpi"
+ls -la /var/lib/glpi
+note 0 "/var/www/html/glpi"
+ls -la /var/www/html/glpi
 
 php bin/console system:check_requirements
 
@@ -205,11 +218,6 @@ php bin/console system:check_requirements
 
 recover_glpi_key
 
-if [ ! -v LOGGING_VERBOSITY ]; then
-    LOGGING_VERBOSITY=0
-fi
-note 0 "whoami: $(whoami)"
-note 0 "groups: $(groups)"
 
 # ls -l /var/lib
 # ls -l /var/lib/glpi
@@ -230,7 +238,7 @@ note 0 'Check schema integrity'
 php bin/console db:check_schema_integrity
 CHECK_INTEGRITY_RES=$?
 note 0 "CHECK_INTEGRITY_RES: ${CHECK_INTEGRITY_RES}"
-if [ $CHECK_INTEGRITY_RES -eq 1 ] || [ $CHECK_INTEGRITY_RES -eq 4 ]; then
+if [ $CHECK_INTEGRITY_RES -eq 1 ] || [ $CHECK_INTEGRITY_RES -eq 4 ] || [ $CHECK_INTEGRITY_RES -eq 255 ]; then
     if [ ! -v GLPI_INSTALL_DEFAULT_OPTIONS ]; then
         GLPI_INSTALL_DEFAULT_OPTIONS="--default-language=${GLPI_LANGUAGE} --no-interaction --no-telemetry"
     fi

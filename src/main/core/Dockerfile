@@ -1,6 +1,6 @@
 # CORE CONTAINER
 FROM alpine:3.17.5 as unzipper
-ARG GLPI_VERSION="10.0.18"
+ARG GLPI_VERSION="10.0.19"
 
 RUN apk add curl
 RUN mkdir -p /opt/ ; \

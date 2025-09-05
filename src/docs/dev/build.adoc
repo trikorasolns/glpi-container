@@ -13,13 +13,24 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+== Introduction
+
+Instructions to build the GLPI containers.
+
 == Requirements
 
 * link:https://buildah.io/[Buildah]
+* link:https://github.com/anchore/grype/blob/main/README.md[Grype]
 
-== Build image
+== Build images
+
+[.lead]
+Build the 4 container images that compose the project.
 
 === Using Ansible
+
+[.lead]
+Automated build using Ansible.
 
 [source,bash]
 ----
@@ -27,6 +38,9 @@ ansible-playbook src/scripts/build/build-images.yaml
 ----
 
 === Using the command line
+
+[.lead]
+Manual build instructions.
 
 Build the GLPI core image.
 

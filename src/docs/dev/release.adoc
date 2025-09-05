@@ -16,6 +16,7 @@ endif::[]
 == Requirements
 
 * link:https://buildah.io/[Buildah]
+* Existing local tag for the GLPI version to be released
 
 == Release images
 
@@ -44,7 +45,7 @@ buildah login quay.io
 
 [source,bash]
 ----
-ansible-playbook src/scripts/build/tag-images.yaml -e tag_number="0.0.5"
+ansible-playbook src/scripts/build/build-and-tag-images -e tag_number="0.0.5"
 ----
 
 === Using the command line
